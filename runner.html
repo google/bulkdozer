@@ -1,0 +1,173 @@
+<script>
+/*
+ * Copyright 2019 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
+/**
+ * Handles the orchestration of running parallel jobs in apps script on the
+ * server side. Handles splitting jobs, waiting for jobs to complete, compiling
+ * results and logs, etc.
+ */
+var Runner = function() {
+  var runnerCallback = null;
+
+  const RUNNER_STATUS_IDLE = 'IDLE';
+  const RUNNER_STATUS_RUNNING = 'RUNNING';
+
+  const JOB_STATUS_RUNNING = 'RUNNING';
+  const JOB_STATUS_PENDING = 'PENDING';
+  const JOB_STATUS_COMPLETE = 'COMPLETE';
+  const JOB_STATUS_ERROR = 'ERROR';
+  const MAX_RUNNING_JOBS = 30;
+
+  var runnerStatus = RUNNER_STATUS_IDLE;
+  var runnerJobs = {};
+  var _command = '';
+
+  /**
+   * Executes pending jobs respecting limit set by MAX_RUNNING_JOBS
+   */
+  function runJobs() {
+    var jobKeys = Object.getOwnPropertyNames(runnerJobs);
+    var pendingJobs = [];
+
+    var runningCount = 0;
+
+    for(var i = 0; i < jobKeys.length; i++) {
+      var job = runnerJobs[jobKeys[i]];
+
+      if(job.status == JOB_STATUS_PENDING) {
+        pendingJobs.push(job);
+      } else if(job.status == JOB_STATUS_RUNNING) {
+        runningCount++;
+      }
+    }
+
+    while(pendingJobs.length > 0 && runningCount < MAX_RUNNING_JOBS) {
+      var job = pendingJobs.shift();
+
+      job.status = JOB_STATUS_RUNNING;
+
+      if(job) {
+        google.script.run.withSuccessHandler(successHandler).withFailureHandler(errorHandler)[_command](JSON.stringify(job));
+        runningCount++;
+      } else {
+        console.log(job);
+      }
+    }
+  }
+
+  /**
+   * Checks the status of the jobs, if all jobs are finished invokes callback
+   * and passes the jobs as a parameter
+   */
+  function processStatus() {
+    var jobKeys = Object.getOwnPropertyNames(runnerJobs);
+    var jobs = [];
+
+    runJobs();
+
+    for(var i = 0; i < jobKeys.length; i++) {
+      var job = runnerJobs[jobKeys[i]];
+
+      jobs.push(job);
+
+      if(job.status == JOB_STATUS_RUNNING) {
+        return;
+      }
+    }
+
+    if(runnerCallback) {
+      runnerCallback(jobs);
+    }
+  }
+
+  /**
+   * Default success handler for server side interactions
+   *
+   * params:
+   *  job: the job that was executed
+   */
+  function successHandler(input) {
+    var job = JSON.parse(input);
+    job.status = JOB_STATUS_COMPLETE;
+    runnerJobs[job.id] = job;
+
+    processStatus();
+  }
+
+  /**
+   * Default error handler for server side interactions
+   *
+   * params:
+   *  error: the error returned by the backend
+   */
+  function errorHandler(input) {
+    var job = JSON.parse(input);
+
+    job.status = JOB_STATUS_ERROR;
+    runnerJobs[job.id] = job;
+
+    processStatus();
+  }
+
+  /**
+   * Executes commands on the server side, each instance in the jobs array will
+   * be processed as one call to the function identified.
+   *
+   * The caller can control which jobs should run or be skipped by setting the
+   * job.run flag to false. If the flag isn't present (undefined) or true the
+   * job will run. This helps to handle environments with promises where only
+   * certain jobs should run at a time, but the context of previous jobs should
+   * be maintained.
+   *
+   * params:
+   *  command: string with the name of the function to be called on the server
+   *  side
+   *
+   *  jobs: list of jobs to be passed to each instance of the server side
+   *  execution, each job in the list will spawn one server side call, and it
+   *  will be passed as parameter
+   *
+   *  callback: callback to be invoked when all jobs are done
+   */
+  this.run = function(command, jobs) {
+    return new Promise(function(resolve, reject) {
+      if(runnerStatus == RUNNER_STATUS_RUNNING) {
+        reject('Runner is already processing a job!');
+      } else {
+        runnerCallback = resolve;
+        _command = command;
+        runnerJobs = {};
+
+        for(var i = 0; i < jobs.length; i++) {
+          var job = jobs[i];
+          job.id = i;
+
+          runnerJobs[job.id] = job;
+
+          if(job.run === false) {
+            job.status = JOB_STATUS_COMPLETE;
+          } else {
+            job.status = JOB_STATUS_PENDING;
+          }
+        }
+
+        processStatus();
+      }
+    });
+  }
+}
+</script>

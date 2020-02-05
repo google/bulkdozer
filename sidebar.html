@@ -1,0 +1,660 @@
+<script>
+/*
+ * Copyright 2019 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
+/**
+ * Controller functions for the sidebar UI
+ */
+
+/**
+ * Displays terms and conditions tab of the feed
+ */
+function showTerms() {
+  google.script.run.goToTab('Terms & Conditions');
+}
+
+/**
+ * Sets a message to the status field in the sidebar
+ */
+function setStatus(status) {
+  document.getElementById('status').innerHTML = status;
+}
+
+/**
+ * In order to prevent users from starting multiple jobs, this toggles buttons
+ * disabled / enabled.
+ */
+function toggleEnabledButtons() {
+  var buttonIds = [
+      'loadFromCM',
+      'clearFeed',
+      'pushToCM'
+  ];
+
+  for(var i = 0; i < buttonIds.length; i++) {
+    document.getElementById(buttonIds[i]).disabled = !document.getElementById(buttonIds[i]).disabled;
+  }
+}
+
+/**
+ * Clears the entire feed
+ */
+function clearFeed() {
+  if(confirm('Clear the feed?')) {
+    toggleEnabledButtons();
+    setStatus('Clearing the feed ...');
+
+    var jobs = [
+      {
+        'sheetName': 'Landing Page',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Campaign',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Event Tag',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Creative',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Placement Group',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Placement',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Placement Pricing Schedule',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Ad',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Ad Creative Assignment',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Ad Placement Assignment',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Event Tag Ad Assignment',
+        'range': 'A2:AZ'
+      },
+      {
+        'sheetName': 'Store',
+        'range': 'A1:AZ1'
+      },
+      {
+        'sheetName': 'Log',
+        'range': 'A1:B'
+      }
+    ];
+
+    new Runner().run('clear', jobs).then(genericCallback).then(function(result) {
+      toggleEnabledButtons();
+    });
+  }
+}
+
+/**
+ * Generic callback function, simply updates status to ready
+ */
+function genericCallback(jobs) {
+  return getLogger().log(jobs).then(function(result) {
+    setStatus('Ready');
+  });
+}
+
+/**
+ * Turns a list of entity load jobs into a map keyed by entity name to simplify
+ * access to each job
+ *
+ * param:
+ *  jobs: list of load jobs
+ *  jobs[N].entity name of the entity to use as key
+ *
+ * returns: may keyed by entity id
+ */
+function getJobsMap(jobs) {
+  var jobsMap = {};
+
+  for(var i = 0; i < jobs.length; i++) {
+    var job = jobs[i];
+    jobsMap[job.entity] = job;
+  }
+
+  return jobsMap;
+}
+
+/**
+ * Disable all jobs in the list so they can run selectively by setting run =
+ * false in all of them
+ *
+ * params:
+ *  jobs: the list of jobs to disable
+ */
+function disableJobs(jobs) {
+  for(var i = 0; i < jobs.length; i++) {
+    jobs[i].run = false;
+  }
+}
+
+/**
+ * Loads data from CM
+ */
+function loadFromCM() {
+  if(confirm('Replace data in the feed with data from Campaign Manager?')) {
+    toggleEnabledButtons();
+
+    var logger = getLogger();
+
+    setStatus('Identifying item ids to load');
+
+    google.script.run.goToTab('Log');
+
+    logger.clear().then(function(result) {
+      var jobs = [
+        {
+          'entity': 'AdvertiserLandingPages'
+        },
+        {
+          'entity': 'Campaigns'
+        },
+        {
+          'entity': 'EventTags'
+        },
+        {
+          'entity': 'Creatives'
+        },
+        {
+          'entity': 'PlacementGroups'
+        },
+        {
+          'entity': 'Placements'
+        },
+        {
+          'entity': 'Ads'
+        },
+        {
+          'entity': 'PlacementPricingSchedule'
+        },
+        {
+          'entity': 'AdCreativeAssignment'
+        },
+        {
+          'entity': 'AdPlacementAssignment'
+        },
+        {
+          'entity': 'AdEventTagAssignment'
+        }
+      ];
+
+      return new Runner().run('identifySpecifiedItemsToLoad', jobs);
+    }).then(function(jobs) {
+      return logger.log(jobs);
+    }).then(function(jobs) {
+      setStatus('Loading main entities from CM');
+
+      var jobsMap = getJobsMap(jobs);
+
+      disableJobs(jobs);
+
+      jobsMap['AdvertiserLandingPages'].run = true;
+      jobsMap['AdvertiserLandingPages'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+
+      jobsMap['Campaigns'].run = true;
+      jobsMap['Campaigns'].preFetchConfigs = [
+        {
+          'entity': 'AdvertiserLandingPages',
+          'listName': 'landingPages',
+          'filterName': 'ids',
+          'fieldName': 'defaultLandingPageId'
+        }
+      ]
+
+      jobsMap['PlacementGroups'].run = true;
+      jobsMap['PlacementGroups'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+      jobsMap['PlacementGroups'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        },{
+          'entity': 'Sites',
+          'listName': 'sites',
+          'filterName': 'ids',
+          'fieldName': 'siteId'
+        }
+      ];
+
+      jobsMap['Placements'].run = true;
+      jobsMap['Placements'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+      jobsMap['Placements'].placementGroupIds = jobsMap['PlacementGroups'].idsToLoad;
+      jobsMap['Placements'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        },{
+          'entity': 'Sites',
+          'listName': 'sites',
+          'filterName': 'ids',
+          'fieldName': 'siteId'
+        },{
+          'entity': 'PlacementGroups',
+          'listName': 'placementGroups',
+          'filterName': 'ids',
+          'fieldName': 'placementGroupId'
+        }
+      ];
+
+      jobsMap['Ads'].run = true;
+      jobsMap['Ads'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+      jobsMap['Ads'].placementIds = jobsMap['Placements'].idsToLoad;
+      jobsMap['Ads'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        },{
+          'entity': 'Placements',
+          'listName': 'placements',
+          'filterName': 'ids',
+          'fieldName': 'placementId'
+        },{
+          'entity': 'PlacementGroups',
+          'listName': 'placementGroups',
+          'filterName': 'ids',
+          'fieldName': 'placementGroupId'
+        }
+      ];
+
+      jobsMap['Creatives'].run = true;
+      jobsMap['Creatives'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+      jobsMap['Creatives'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        }
+      ];
+
+      return new Runner().run('cmLoad', jobs);
+    }).then(function(jobs) {
+      return logger.log(jobs);
+    }).then(function(jobs) {
+      setStatus('Loading relationship tabs');
+
+      var jobsMap = getJobsMap(jobs);
+      disableJobs(jobs);
+
+      jobsMap['EventTags'].run = true;
+      jobsMap['EventTags'].adIds = jobsMap['Ads'].loadedIds;
+      jobsMap['EventTags'].campaignIds = jobsMap['Campaigns'].loadedIds;
+      jobsMap['EventTags'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        }
+      ];
+
+      jobsMap['PlacementPricingSchedule'].run = true;
+      jobsMap['PlacementPricingSchedule'].idsToLoad = jobsMap['Placements'].loadedIds;
+
+      jobsMap['AdCreativeAssignment'].run = true;
+      jobsMap['AdCreativeAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
+      jobsMap['AdCreativeAssignment'].preFetchConfigs = [
+        {
+          'entity': 'Creatives',
+          'listName': 'creatives',
+          'filterName': 'ids',
+          'fieldName': 'creativeId'
+        }
+      ];
+
+      jobsMap['AdPlacementAssignment'].run = true;
+      jobsMap['AdPlacementAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
+      jobsMap['AdPlacementAssignment'].preFetchConfigs = [
+        {
+          'entity': 'Placements',
+          'listName': 'placements',
+          'filterName': 'ids',
+          'fieldName': 'placementId'
+        }
+      ];
+
+      jobsMap['AdEventTagAssignment'].run = true;
+      jobsMap['AdEventTagAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
+
+      return new Runner().run('cmLoad', jobs);
+    }).then(function(jobs) {
+      return logger.log(jobs);
+    }).then(function(jobs) {
+      setStatus('Ready');
+
+      toggleEnabledButtons();
+    }).catch(function(error) {
+      setStatus('An error happened!');
+
+      console.log(error);
+    });
+  }
+}
+
+/**
+ * Generates id map structure, used to map ext ids with real ids
+ */
+function newIdMap() {
+  var result = {};
+  var entities = [
+      'AdvertiserLandingPages',
+      'Campaigns',
+      'PlacementGroups',
+      'Placements',
+      'EventTags',
+      'Creatives',
+      'Ads'
+  ];
+
+  for(var i = 0; i < entities.length; i++) {
+    result[entities[i]] = {};
+  }
+
+  return result;
+}
+
+/**
+ * Applies id map to all jobs in the list
+ *
+ * params:
+ *  idMap: id map to be applied
+ *  jobs: list of jobs, the id map is added as a field to each object in the
+ *  list
+ */
+function applyIdMap(idMap, jobs) {
+  for(var i = 0; i < jobs.length; i++) {
+    jobs[i].idMap = idMap;
+  }
+}
+
+/**
+ * Merges all id maps into one, so it can be passed to the next iteration of the
+ * load process
+ *
+ * params:
+ *  jobs: list of jobs
+ *  jobs[i].idMap: the id map of a specific job
+ *
+ * returns: idMap with all keys and values from all idMaps of the jobs
+ */
+function mergeIdMaps(jobs) {
+  var result = {};
+
+  for(var i = 0; i < jobs.length; i++) {
+    var job = jobs[i];
+
+    var entities = Object.getOwnPropertyNames(job.idMap);
+
+    for(var j = 0; j < entities.length; j++) {
+      var entity = entities[j];
+
+      if(!result[entity]) {
+        result[entity] = {};
+      }
+
+      var keys = Object.getOwnPropertyNames(job.idMap[entity]);
+
+      for(var k = 0; k < keys.length; k++) {
+        var key = keys[k];
+
+        result[entity][key] = job.idMap[entity][key];
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Extracts the new feed from jobs and updates the feed
+ *
+ * params:
+ *  jobs: list of jobs
+ *  jobs[i].entity: identifies which loader to use
+ *  jobs[i].feedItem: feed item to update
+ */
+function updateFeed(jobs) {
+  var feeds = {};
+  var updateJobs = [];
+
+  for(var i = 0; i < jobs.length; i++) {
+    var job = jobs[i];
+
+    if(!feeds[job.entity]) {
+      feeds[job.entity] = {
+        'entity': job.entity,
+        'feed': []
+      };
+
+      updateJobs.push(feeds[job.entity]);
+    }
+
+    feeds[job.entity].feed.push(job.feedItem);
+  }
+
+
+  new Runner().run('updateFeed', updateJobs);
+}
+
+/**
+ * Saves the idMap back to the Store tab of the sheet
+ *
+ * params:
+ *  idMap: the id map to save
+ */
+function saveIdMap(idMap) {
+  var job = {
+    "idMap": idMap,
+    "run": true
+  }
+
+  new Runner().run('saveIdMap', [job]);
+}
+
+/**
+ * Receives the result of a cm push function for a given entity, and post processes
+ * it by managing id maps and updating the sheet
+ *
+ * params:
+ *  jobs: the list of jobs that was processed
+ *  idMap: The map of ids returned by the server
+ *
+ * returns: the updated list of jobs
+ */
+function postProcessEntityPush(jobs) {
+  updateFeed(jobs);
+
+  var idMap = mergeIdMaps(jobs);
+
+  saveIdMap(idMap);
+
+  return getLogger().log(jobs).then(function(result) {
+    return idMap;
+  });
+}
+
+/**
+ * Prepares a push job by returning a list of jobs of a specified entity,
+ * since each entity needs to be run by itself, and applying the id map to all
+ * jobs in that list.
+ *
+ * params:
+ *  jobsMap: The jobs map returned by getJobsMap
+ *  entityName: The name of the entity for which to identify jobs
+ *  idMap: idMap
+ *
+ * returns: List of jobs of a specific entity with idMap applied to jobs
+*/
+function preparePushJob(jobsMap, entityName, idMap) {
+  var result = jobsMap[entityName].jobs;
+  applyIdMap(idMap, result);
+
+  return result;
+}
+
+/**
+ * Orchestrates the Campaign Manager push by executing each job and doing pre and post
+ * process activities required by each of them. This function is called recursively
+ * to execute all jobs.
+ *
+ * params:
+ *  jobs: list of jobs to execute
+ *  index: index of the current job to execute
+ *
+ * returns: List of executed jobs
+*/
+function orchestratePush(jobs, idMap, jobsMap, index) {
+  if(index < jobs.length) {
+    var job = jobs[index];
+
+    if(jobsMap[job['entity']].jobs.length > 0) {
+      return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap)).then(function(executedJobs) {
+        jobsMap[job['entity']] = executedJobs;
+        return postProcessEntityPush(executedJobs);
+      }).then(function(idMap) {
+        return orchestratePush(jobs, idMap, jobsMap, index + 1);
+      });
+    } else {
+      return orchestratePush(jobs, idMap, jobsMap, index + 1);
+    }
+  }
+
+  return new Promise(function(resolve, reject) {
+    var failedJobs = getFailedJobs(jobsMap);
+
+    if(failedJobs.length > 0) {
+      reject(idMap);
+    } else {
+      resolve(idMap);
+    }
+  });
+}
+
+/**
+ * Given a jobs map returned by getJobsMap, identifies any jobs that were unsuccessful (are not in the COMPLETE state).
+ * This can be used to identify if the run was clean (in which case this will return an empty list),
+ * or if to list out all error messages that happened.
+ *
+ * params:
+ *  jobsMap: jobs map keyed by entity with jobs list
+ *
+ * returns:
+ *  true if it was a clean run (all jobs' status are COMPLETE), false otherwise
+ */
+function getFailedJobs(jobsMap) {
+
+  var keys = Object.getOwnPropertyNames(jobsMap);
+  var result = [];
+
+  for(var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+
+    for(var j = 0; j < jobsMap[key].length; j++) {
+      var job = jobsMap[key][j];
+      if(job.status != 'COMPLETE') {
+        result.push(job);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Pushes data to Campaign Manager
+ */
+function pushToCM() {
+  if(confirm('Update Campaign Manager with data from feed?')) {
+    toggleEnabledButtons();
+
+    var logger = getLogger();
+
+    setStatus('Pushing to CM');
+
+    google.script.run.goToTab('Log');
+
+    logger.clear().then(function(result) {
+      return new Runner().run('loadIdMap', [{}]);
+    }).then(function(idMap) {
+      var jobs = [
+        {
+          'entity': 'AdvertiserLandingPages'
+        },{
+          'entity': 'Campaigns'
+        },{
+          'entity': 'EventTags'
+        },{
+          'entity': 'Creatives'
+        },{
+          'entity': 'PlacementGroups'
+        },{
+          'entity': 'Placements'
+        },{
+          'entity': 'Ads'
+        }
+      ];
+
+      return new Runner().run('createPushJobs', jobs).then(function(pushJobs) {
+        var jobsMap = getJobsMap(pushJobs);
+
+        return orchestratePush(pushJobs, idMap[0].idMap, jobsMap, 0);
+      });
+    }).then(function(jobs) {
+      toggleEnabledButtons();
+
+      setStatus('Ready');
+
+      return new Runner().run('clear', [{
+        'sheetName': 'Store',
+        'range': 'A1:Z1',
+        'run': true
+      }]);
+    }).catch(function(error) {
+      toggleEnabledButtons();
+
+      setStatus('An error happened, please see details in the log tab. Note that a map of extids is being kept so you can re-run the current job ' +
+          'after fixing the issues. If you plan to start working on another campaign, please make sure to "Clear Feed" before starting');
+
+      console.log(error);
+    });
+  }
+}
+</script>

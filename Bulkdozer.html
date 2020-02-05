@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Bulkdozer</title>
+<body>
+  <b>Notices</b>
+  <ul>
+    <li>
+      This version of Bulkdozer is experimental and should not used against live campaigns or campaigns that will be launched in the future under no circumstances.
+    </li>
+    <li>
+      By using any of the functionality below you agree with the <a onclick='showTerms()' href='#'>Bulkdozer Terms and Conditions</a>.
+    </li>
+    <li>
+      Closing this sidebar mid process will cause the process to stop shortly thereafter, however the feed will be in an inconsistent state and should be fully cleared or loaded from CM before any subsequent operations are executed.
+    </li>
+  </ul>
+  Status: <span id='status'>Ready</span>
+  <br />
+  <br />
+  <button id='clearFeed' onclick='clearFeed()'>Clear Feed</button><br />
+  <button id='loadFromCM' onclick='loadFromCM()'>Load from CM</button><br />
+  <button id='pushToCM' onclick='pushToCM()'>Push to CM</button><br />
+  <?!= include('runner'); ?>
+  <?!= include('sidebar'); ?>
+  <?!= include('logger'); ?>
+</body>

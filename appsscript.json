@@ -1,0 +1,12 @@
+{
+  "timeZone": "America/Mexico_City",
+  "dependencies": {
+    "enabledAdvancedServices": [{
+      "userSymbol": "DoubleClickCampaigns",
+      "serviceId": "dfareporting",
+      "version": "v3.3"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "oauthScopes": ["https://www.googleapis.com/auth/script.container.ui", "https://www.googleapis.com/auth/dfareporting", "https://www.googleapis.com/auth/dfatrafficking", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.external_request"]
+}
