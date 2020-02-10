@@ -432,7 +432,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
     var translatedId = null;
 
     if(String(idValue).indexOf('ext') == 0) {
-      translatedId = idStore.translate(tabName, idValue);
+      translatedId = getIdStore().translate(tabName, idValue);
     }
 
     return translatedId || idValue;
@@ -450,7 +450,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
     var idValue = job.feedItem[this.idField];
 
     try {
-      idStore.initialize(job.idMap);
+      getIdStore().initialize(job.idMap);
 
       var insert = true;
 
@@ -484,7 +484,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
 
       // Store new ids
       if(idValue && String(idValue).indexOf('ext') == 0) {
-        idStore.addId(this.tabName, idValue, job.cmObject.id);
+        getIdStore().addId(this.tabName, idValue, job.cmObject.id);
       }
 
       if(this.postProcessPush) {
@@ -1914,31 +1914,36 @@ PricingScheduleLoader.prototype = Object.create(BaseLoader.prototype);
  * returns: the loader for the specified entity
  */
 function getLoader(entity) {
-  return loaders[entity];
+  return getLoaders()[entity];
 }
-
-// Sheet DAO used by all loaders
-var sheetDAO = new SheetDAO();
 
 // Gets the profile id from the Store tab
 function getProfileId() {
-  return sheetDAO.getValue('Store', 'B2');
+  return getSheetDAO().getValue('Store', 'B2');
 }
 
 // CM DAO used by all loaders
-var cmDAO = new CampaignManagerDAO(getProfileId());
 
-// Map of loaders used by getLoaders
-var loaders = {
-  'Campaigns': new CampaignLoader(sheetDAO, cmDAO),
-  'AdvertiserLandingPages': new LandingPageLoader(sheetDAO, cmDAO),
-  'EventTags': new EventTagLoader(sheetDAO, cmDAO),
-  'Creatives': new CreativeLoader(sheetDAO, cmDAO),
-  'PlacementGroups': new PlacementGroupLoader(sheetDAO, cmDAO),
-  'Placements': new PlacementLoader(sheetDAO, cmDAO),
-  'Ads': new AdLoader(sheetDAO, cmDAO),
-  'PlacementPricingSchedule': new PricingScheduleLoader(sheetDAO, cmDAO),
-  'AdCreativeAssignment': new AdCreativeLoader(sheetDAO, cmDAO),
-  'AdPlacementAssignment': new AdPlacementLoader(sheetDAO, cmDAO),
-  'AdEventTagAssignment': new AdEventTagLoader(sheetDAO, cmDAO)
+// Map of loaders used by getLoader
+var loaders;
+function getLoaders() {
+  var cmDAO = new CampaignManagerDAO(getProfileId());
+  var sheetDAO = getSheetDAO();
+  if(!loaders) {
+    loaders = {
+      'Campaigns': new CampaignLoader(sheetDAO, cmDAO),
+      'AdvertiserLandingPages': new LandingPageLoader(sheetDAO, cmDAO),
+      'EventTags': new EventTagLoader(sheetDAO, cmDAO),
+      'Creatives': new CreativeLoader(sheetDAO, cmDAO),
+      'PlacementGroups': new PlacementGroupLoader(sheetDAO, cmDAO),
+      'Placements': new PlacementLoader(sheetDAO, cmDAO),
+      'Ads': new AdLoader(sheetDAO, cmDAO),
+      'PlacementPricingSchedule': new PricingScheduleLoader(sheetDAO, cmDAO),
+      'AdCreativeAssignment': new AdCreativeLoader(sheetDAO, cmDAO),
+      'AdPlacementAssignment': new AdPlacementLoader(sheetDAO, cmDAO),
+      'AdEventTagAssignment': new AdEventTagLoader(sheetDAO, cmDAO)
+    }
+  }
+
+  return loaders;
 }

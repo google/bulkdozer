@@ -30,11 +30,12 @@ var Runner = function() {
   const JOB_STATUS_PENDING = 'PENDING';
   const JOB_STATUS_COMPLETE = 'COMPLETE';
   const JOB_STATUS_ERROR = 'ERROR';
-  const MAX_RUNNING_JOBS = 30;
+  const MAX_RUNNING_JOBS = 28;
 
   var runnerStatus = RUNNER_STATUS_IDLE;
   var runnerJobs = {};
   var _command = '';
+  var _progressCallback;
 
   /**
    * Executes pending jobs respecting limit set by MAX_RUNNING_JOBS
@@ -76,6 +77,7 @@ var Runner = function() {
   function processStatus() {
     var jobKeys = Object.getOwnPropertyNames(runnerJobs);
     var jobs = [];
+    var allJobsDone = true;
 
     runJobs();
 
@@ -105,6 +107,10 @@ var Runner = function() {
     job.status = JOB_STATUS_COMPLETE;
     runnerJobs[job.id] = job;
 
+    if(_progressCallback) {
+      _progressCallback(job);
+    }
+
     processStatus();
   }
 
@@ -119,6 +125,10 @@ var Runner = function() {
 
     job.status = JOB_STATUS_ERROR;
     runnerJobs[job.id] = job;
+
+    if(_progressCallback) {
+      _progressCallback(job);
+    }
 
     processStatus();
   }
@@ -141,14 +151,15 @@ var Runner = function() {
    *  execution, each job in the list will spawn one server side call, and it
    *  will be passed as parameter
    *
-   *  callback: callback to be invoked when all jobs are done
+   *  progressCallback: Optional. Callback to be invoked for each job that finishes.
    */
-  this.run = function(command, jobs) {
+  this.run = function(command, jobs, progressCallback) {
     return new Promise(function(resolve, reject) {
       if(runnerStatus == RUNNER_STATUS_RUNNING) {
         reject('Runner is already processing a job!');
       } else {
         runnerCallback = resolve;
+        _progressCallback = progressCallback;
         _command = command;
         runnerJobs = {};
 

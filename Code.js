@@ -25,7 +25,7 @@
 function onOpen(e) {
   SpreadsheetApp.getUi()
       .createMenu('Bulkdozer')
-      .addItem('Bulkdozer', 'bulkdozer')
+      .addItem('Open', 'bulkdozer')
       .addToUi();
 }
 

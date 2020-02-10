@@ -128,5 +128,12 @@ var IdStore = function(sheetDAO) {
   }
 }
 
-// Singleton instance of the id store
-var idStore = new IdStore(new SheetDAO());
+// Singleton implementation for the idStore
+var idStore;
+function getIdStore() {
+  if(!idStore) {
+    idStore = new IdStore(new SheetDAO());
+  }
+
+  return idStore;
+}

@@ -400,3 +400,14 @@ var SheetDAO = function() {
     }
   }
 }
+
+// Singleton implementation for the sheet dao
+var sheetDAO;
+function getSheetDAO() {
+  if(!sheetDAO) {
+    sheetDAO = new SheetDAO();
+  }
+
+  return sheetDAO;
+}
+

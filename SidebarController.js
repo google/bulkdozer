@@ -140,9 +140,9 @@ function updateFeed(job) {
  * returns: job.idMap with the current id map in the sheet
  */
 function _saveIdMap(job) {
-  idStore.initialize(job.idMap);
+  getIdStore().initialize(job.idMap);
 
-  idStore.store();
+  getIdStore().store();
 
   return job;
 }
@@ -159,9 +159,9 @@ function saveIdMap(job) {
  * returns: job.idMap with the current id map in the sheet
  */
 function _loadIdMap(job) {
-  idStore.load();
+  getIdStore().load();
 
-  job.idMap = idStore.getData();
+  job.idMap = getIdStore().getData();
 
   return job;
 }

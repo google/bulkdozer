@@ -506,8 +506,10 @@ function postProcessEntityPush(jobs) {
 
   saveIdMap(idMap);
 
-  return getLogger().log(jobs).then(function(result) {
-    return idMap;
+  flushLogs();
+
+  return new Promise(function(resolve, reject) {
+    resolve(idMap);
   });
 }
 
@@ -530,6 +532,24 @@ function preparePushJob(jobsMap, entityName, idMap) {
   return result;
 }
 
+var jobsToLog = [];
+/**
+*/
+function flushLogs() {
+  if(jobsToLog.length > 0) {
+    getLogger().log(jobsToLog);
+    jobsToLog = [];
+  }
+}
+
+function writeLogs(job, flush) {
+  if(jobsToLog.length > 25) {
+    flushLogs();
+  } else {
+    jobsToLog.push(job);
+  }
+}
+
 /**
  * Orchestrates the Campaign Manager push by executing each job and doing pre and post
  * process activities required by each of them. This function is called recursively
@@ -546,7 +566,7 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
     var job = jobs[index];
 
     if(jobsMap[job['entity']].jobs.length > 0) {
-      return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap)).then(function(executedJobs) {
+      return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap), writeLogs).then(function(executedJobs) {
         jobsMap[job['entity']] = executedJobs;
         return postProcessEntityPush(executedJobs);
       }).then(function(idMap) {

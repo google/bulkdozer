@@ -40,16 +40,45 @@ var Logger = function() {
     return new Runner().run('clear', [{'sheetName': 'Log', 'range': 'A1:B'}]);
   }
 
+  /**
+   * Counts how many log lines are in the jobs
+   *
+   * params:
+   *  jobs: list of jobs
+   *
+   * returns: Number of log lines in all jobs
+   */
+  function countLogLines(jobs) {
+    var result = 0;
+
+    for(var i = 0; i < jobs.length; i++) {
+      var job = jobs[i];
+
+      if(job.logs) {
+        result += jobs[i].logs.length;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Writes logs from jobs to log sheet
+   *
+   * params:
+   *   jobs: list of jobs
+   */
   this.log = function(jobs) {
     var job = {
       'jobs': jobs,
       'offset': offset
     }
 
+    offset += countLogLines(jobs);
+
     return new Runner().run('writeLogs', [job]).then(function(result) {
       if(result.length > 0) {
         var job = result[0];
-        offset = job.offset;
 
         return job.jobs;
       }
