@@ -534,7 +534,8 @@ function preparePushJob(jobsMap, entityName, idMap) {
 
 var jobsToLog = [];
 /**
-*/
+ * Flush all pending logs to the Log tab
+ */
 function flushLogs() {
   if(jobsToLog.length > 0) {
     getLogger().log(jobsToLog);
@@ -542,12 +543,42 @@ function flushLogs() {
   }
 }
 
+/**
+ * Writes logs to the Log tab if they have reached a certain threshold or if logs are being flushed.
+ * Writing logs in batches is particularly important for performance reasons, sheets can get really slow
+ * if multiple single line (or cell) updates are executed, the performance is much better if blocks of
+ * cells (or larger ranges) are updated. This balances performance and usability by writing to the logs
+ * only when there are at least 25 lines available. This number is based on the fact that Bulkdozer
+ * processes 28 jobs at a time, and typically that that is the batch of jobs that should finish together
+ * to be written in a single operation.
+ *
+ * params:
+ *  job: The job to read logs from, it looks for a "logs" array of strings in the object.
+ *  flush: If true it will write the logs independently of how many log lines are found, otherwise
+ *    respects the threshold.
+ */
 function writeLogs(job, flush) {
-  if(jobsToLog.length > 25) {
+  jobsToLog.push(job);
+
+  if(jobsToLog.length > 25 || flush) {
     flushLogs();
-  } else {
-    jobsToLog.push(job);
   }
+}
+
+/**
+ * Logs a single text line to the Log tab. Note this uses the writeLogs function, which
+ * buffers logs, please @see writeLogs for more details.
+ *
+ * params:
+ *  msg: the text message to add to the logs.
+ *  flush: wether the logs should be flushed (@see writeLogs)
+ */
+function log(msg, flush) {
+  writeLogs(
+    {
+      logs: [[new Date(), msg]]
+    }
+  , flush);
 }
 
 /**
@@ -627,11 +658,12 @@ function pushToCM() {
 
     var logger = getLogger();
 
-    setStatus('Pushing to CM');
-
     google.script.run.goToTab('Log');
 
+    setStatus('Pushing to CM');
+
     logger.clear().then(function(result) {
+      log('Starting CM push', true);
       return new Runner().run('loadIdMap', [{}]);
     }).then(function(idMap) {
       var jobs = [
@@ -662,6 +694,8 @@ function pushToCM() {
 
       setStatus('Ready');
 
+      log('Done, clean run', true);
+
       return new Runner().run('clear', [{
         'sheetName': 'Store',
         'range': 'A1:Z1',
@@ -669,6 +703,8 @@ function pushToCM() {
       }]);
     }).catch(function(error) {
       toggleEnabledButtons();
+
+      log('Done but errors happened, please review logs above for details', true);
 
       setStatus('An error happened, please see details in the log tab. Note that a map of extids is being kept so you can re-run the current job ' +
           'after fixing the issues. If you plan to start working on another campaign, please make sure to "Clear Feed" before starting');

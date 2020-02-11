@@ -74,9 +74,14 @@ var CampaignManagerDAO = function(profileId) {
    */
   function _retry(fn, retries, sleep) {
     try {
-      return fn();
+      var result = fn();
+      console.log('Success!');
+      return result;
     } catch(error) {
       if(isRetriableError(error) && retries > 0) {
+        console.log('Error, retrying');
+        console.log('Retries: ' + retries);
+        console.log('Sleep: ' + sleep);
         Utilities.sleep(sleep);
         return _retry(fn, retries - 1, sleep * 2);
       } else {
@@ -197,6 +202,8 @@ var CampaignManagerDAO = function(profileId) {
    *  obj: Object to insert or update
    */
   this.update = function(entity, obj) {
+    console.log('updating entity ' + entity);
+    console.log('entity id: ' + obj.id);
     if(obj.id) {
       return _retry(function() {
         return DoubleClickCampaigns[entity].update(obj, profileId);

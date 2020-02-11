@@ -1359,7 +1359,10 @@ var CreativeLoader = function(sheetDAO, cmDAO) {
   /**
    * @see LandingPageLoader.processPush
    */
-  this.processPush = function(feedItem, creative) {
+  this.processPush = function(job) {
+    var creative = job.cmObject;
+    var feedItem = job.feedItem;
+
     if(feedItem[fields.creativeName]) {
       creative.name = feedItem[fields.creativeName];
     }
