@@ -174,44 +174,48 @@ function loadFromCM() {
 
     google.script.run.goToTab('Log');
 
-    logger.clear().then(function(result) {
-      var jobs = [
-        {
-          'entity': 'AdvertiserLandingPages'
-        },
-        {
-          'entity': 'Campaigns'
-        },
-        {
-          'entity': 'EventTags'
-        },
-        {
-          'entity': 'Creatives'
-        },
-        {
-          'entity': 'PlacementGroups'
-        },
-        {
-          'entity': 'Placements'
-        },
-        {
-          'entity': 'Ads'
-        },
-        {
-          'entity': 'PlacementPricingSchedule'
-        },
-        {
-          'entity': 'AdCreativeAssignment'
-        },
-        {
-          'entity': 'AdPlacementAssignment'
-        },
-        {
-          'entity': 'AdEventTagAssignment'
-        }
-      ];
+    return new Runner().run('initializeJob', [{}]).then(function(result) {
+      console.log('Starting job: ' + result[0].jobId);
 
-      return new Runner().run('identifySpecifiedItemsToLoad', jobs);
+      return logger.clear().then(function(result) {
+        var jobs = [
+          {
+            'entity': 'AdvertiserLandingPages'
+          },
+          {
+            'entity': 'Campaigns'
+          },
+          {
+            'entity': 'EventTags'
+          },
+          {
+            'entity': 'Creatives'
+          },
+          {
+            'entity': 'PlacementGroups'
+          },
+          {
+            'entity': 'Placements'
+          },
+          {
+            'entity': 'Ads'
+          },
+          {
+            'entity': 'PlacementPricingSchedule'
+          },
+          {
+            'entity': 'AdCreativeAssignment'
+          },
+          {
+            'entity': 'AdPlacementAssignment'
+          },
+          {
+            'entity': 'AdEventTagAssignment'
+          }
+        ];
+
+        return new Runner().run('identifySpecifiedItemsToLoad', jobs);
+      });
     }).then(function(jobs) {
       return logger.log(jobs);
     }).then(function(jobs) {
@@ -662,25 +666,124 @@ function pushToCM() {
 
     setStatus('Pushing to CM');
 
-    logger.clear().then(function(result) {
-      log('Starting CM push', true);
-      return new Runner().run('loadIdMap', [{}]);
+    return new Runner().run('initializeJob', [{}]).then(function(result) {
+      console.log('Starting job: ' + result[0].jobId);
+      return logger.clear().then(function(result) {
+        log('Starting CM push', true);
+        return new Runner().run('loadIdMap', [{}]);
+      });
     }).then(function(idMap) {
       var jobs = [
         {
-          'entity': 'AdvertiserLandingPages'
+          'entity': 'AdvertiserLandingPages',
+          'preFetchConfigs': [
+            {
+              'entity': 'AdvertiserLandingPages',
+              'listName': 'landingPages',
+              'filterName': 'ids',
+              'fieldName': 'Landing Page ID'
+            }
+          ]
         },{
-          'entity': 'Campaigns'
+          'entity': 'Campaigns',
+          'preFetchConfigs': [
+            {
+              'entity': 'AdvertiserLandingPages',
+              'listName': 'landingPages',
+              'filterName': 'ids',
+              'fieldName': 'Landing Page ID'
+            },{
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            }
+          ]
         },{
-          'entity': 'EventTags'
+          'entity': 'EventTags',
+          'preFetchConfigs': [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            }
+          ]
         },{
-          'entity': 'Creatives'
+          'entity': 'Creatives',
+          'preFetchConfigs': [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            },{
+              'entity': 'Creatives',
+              'listName': 'creatives',
+              'filterName': 'ids',
+              'fieldName': 'Creative ID'
+            }
+          ]
         },{
-          'entity': 'PlacementGroups'
+          'entity': 'PlacementGroups',
+          'preFetchConfigs': [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            },{
+              'entity': 'Sites',
+              'listName': 'sites',
+              'filterName': 'ids',
+              'fieldName': 'Site ID'
+            },{
+              'entity': 'PlacementGroups',
+              'listName': 'placementGroups',
+              'filterName': 'ids',
+              'fieldName': 'Placement Group ID'
+            }
+          ]
         },{
-          'entity': 'Placements'
+          'entity': 'Placements',
+          'preFetchConfigs': [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            },{
+              'entity': 'Sites',
+              'listName': 'sites',
+              'filterName': 'ids',
+              'fieldName': 'Site ID'
+            },{
+              'entity': 'PlacementGroups',
+              'listName': 'placementGroups',
+              'filterName': 'ids',
+              'fieldName': 'Placement Group ID'
+            },{
+              'entity': 'Placements',
+              'listName': 'placements',
+              'filterName': 'ids',
+              'fieldName': 'Placement ID'
+            }
+          ]
         },{
-          'entity': 'Ads'
+          'entity': 'Ads',
+          'preFetchConfigs': [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'Campaign ID'
+            },{
+              'entity': 'Ads',
+              'listName': 'ads',
+              'filterName': 'ids',
+              'fieldName': 'Ad ID'
+            }
+          ]
         }
       ];
 

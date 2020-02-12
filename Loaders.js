@@ -134,6 +134,67 @@ var BaseLoader = function(sheetDAO, cmDAO) {
     }
   }
 
+  /**
+   * Pre-fetches entities from CM using the list endpoint which can return
+   * several items, these items are then cached and when the process invokes the
+   * get() method the entity is returned from the cache dramatically reducing the
+   * number of calls made to the CM API.
+   *
+   * params:
+   *  entity: name of the entity to pre fetch
+   *  listName: list name of the API return
+   *  filterName: name of the filter to pass to the API call
+   *  filterValues: list of values to be used to filter entities in conjunction
+   *    of the filterName
+   */
+  this.preFetch = function(entity, listName, filterName, filterValues) {
+    // The CM API throws a 400 if too many items are specified in the
+    // filterValue, and therefore we use this chunk value to limit the number of
+    // filters per call
+    var chunk = 200;
+
+    if(filterName && filterValues && filterValues.length > 0) {
+
+      while(filterValues.length > 0) {
+        var searchOptions = {};
+
+        chunkFilterValues = filterValues.splice(0, chunk);
+
+        if(chunkFilterValues.length > 0) {
+          searchOptions[filterName] = chunkFilterValues;
+          cmDAO.list(entity, listName, searchOptions);
+        }
+      }
+    }
+  }
+
+  /**
+   * Performs pre-fetch of entities that are related to this one based on feed
+   * items, this causes entities to be cached reducing the number of API calls
+   * to CM
+   *
+   * params:
+   *  entity: name of the entity to pre fetch
+   *  listName: list name of the API return
+   *  filterName: name of the filter to pass to the API call
+   *  feedItems: list of feed items the entity
+   *  fieldName: name of the field in the feedItem to get values for the filter
+   */
+  this.preFetchFromFeed = function(entity, listName, filterName, feedItems, fieldName) {
+    if(filterName && feedItems && feedItems.length > 0) {
+      var filterValues = [];
+
+      for(var i = 0; i < feedItems.length; i++) {
+        var feedItem = feedItems[i];
+
+        if(feedItem[fieldName] && filterValues.indexOf(feedItem[fieldName]) == -1 && typeof(feedItem[fieldName]) == 'number') {
+          filterValues.push(feedItem[fieldName]);
+        }
+      }
+
+      this.preFetch(entity, listName, filterName, filterValues);
+    }
+  }
 
   /**
    * Performs pre-fetch of entities that are related to this one, this causes
@@ -147,7 +208,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
    *  fieldName: name of the field in the child entity from which to get values
    *  for the filter
    */
-  this.preFetch = function(entity, listName, filterName, items, fieldName) {
+  this.preFetchFromObjs = function(entity, listName, filterName, items, fieldName) {
     if(filterName && items && items.length > 0) {
       var filterValues = [];
 
@@ -159,12 +220,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
         }
       }
 
-      if(filterValues.length > 0) {
-        var searchOptions = {};
-
-        searchOptions[filterName] = filterValues;
-        cmDAO.list(entity, listName, searchOptions);
-      }
+      this.preFetch(entity, listName, filterName, filterValues);
     }
   }
 
@@ -297,7 +353,7 @@ var BaseLoader = function(sheetDAO, cmDAO) {
       for(var i = 0; i < job.preFetchConfigs.length; i++) {
         var preFetchConfig = job.preFetchConfigs[i];
 
-        this.preFetch(preFetchConfig.entity, preFetchConfig.listName, preFetchConfig.filterName, itemsToLoad, preFetchConfig.fieldName);
+        this.preFetchFromObjs(preFetchConfig.entity, preFetchConfig.listName, preFetchConfig.filterName, itemsToLoad, preFetchConfig.fieldName);
       }
     }
 
@@ -345,6 +401,14 @@ var BaseLoader = function(sheetDAO, cmDAO) {
   this.createPushJobs = function(job) {
     var feed = sheetDAO.sheetToDict(this.tabName);
     job.jobs = [];
+
+    if(feed.length > 0 && job.preFetchConfigs && job.preFetchConfigs.length > 0) {
+      for(var i = 0; i < job.preFetchConfigs.length; i++) {
+        var preFetchConfig = job.preFetchConfigs[i];
+
+        this.preFetchFromFeed(preFetchConfig.entity, preFetchConfig.listName, preFetchConfig.filterName, feed, preFetchConfig.fieldName);
+      }
+    }
 
     for(var i = 0; i < feed.length; i++) {
       var pushJob = {
@@ -518,10 +582,6 @@ var BaseLoader = function(sheetDAO, cmDAO) {
 
       for(var j = 0; j < job.feed.length; j++) {
         feedItem = job.feed[j];
-
-        console.log(feedItem);
-        console.log(childConfig);
-        console.log(feedItem[childConfig.listName]);
 
         if(feedItem[childConfig.listName]) {
           childFeed = childFeed.concat(feedItem[childConfig.listName]);
@@ -1316,6 +1376,8 @@ var CreativeLoader = function(sheetDAO, cmDAO) {
 
         for(var j = 0; j < creatives.length; j++) {
           var creative = creatives[j];
+
+          creative.campaignId = campaignId;
 
           if(!creativesMap[creative.id]) {
             creativesMap[creative.id] = creative;

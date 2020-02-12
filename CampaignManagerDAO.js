@@ -28,8 +28,16 @@ var CampaignManagerDAO = function(profileId) {
   // within the 5 minutes runtime
   const DEFAULT_SLEEP = 8 * 1000;
   const DEFAULT_RETRIES = 4;
+  const CACHE_EXPIRATION = 21600;
 
-  var cache = {};
+  var cache = CacheService.getUserCache();
+  var listCache = {};
+  var userProperties = PropertiesService.getUserProperties();
+  var jobId = userProperties.getProperty('jobId');
+
+  function getCacheKey(entity, id) {
+    return entity + '|' + id + '|' + jobId;
+  }
 
   // PRIVATE METHODS
   function getListCacheKey(entity, listName, options) {
@@ -75,13 +83,9 @@ var CampaignManagerDAO = function(profileId) {
   function _retry(fn, retries, sleep) {
     try {
       var result = fn();
-      console.log('Success!');
       return result;
     } catch(error) {
       if(isRetriableError(error) && retries > 0) {
-        console.log('Error, retrying');
-        console.log('Retries: ' + retries);
-        console.log('Sleep: ' + sleep);
         Utilities.sleep(sleep);
         return _retry(fn, retries - 1, sleep * 2);
       } else {
@@ -138,23 +142,19 @@ var CampaignManagerDAO = function(profileId) {
     var result;
     var cacheKey = getListCacheKey(entity, listName, options);
 
-    if (cache[cacheKey]) {
-      result = cache[cacheKey];
+    if (listCache[cacheKey]) {
+      result = listCache[cacheKey];
     } else {
       console.log('Invoking API to list ' + entity);
       result = fetchAll(entity, listName, options);
 
-      cache[cacheKey] = result;
-
-      if (!cache[entity]) {
-        cache[entity] = {};
-      }
+      listCache[cacheKey] = result;
 
       for (var i = 0; i < result.length; i++) {
         var item = result[i];
 
-        if (item['id']) {
-          cache[entity][item.id] = item;
+        if (JSON.stringify(item).length < 100000 && item['id']) {
+          cache.put(getCacheKey(entity, item['id']), item, CACHE_EXPIRATION);
         }
       }
     }
@@ -174,20 +174,16 @@ var CampaignManagerDAO = function(profileId) {
       return null;
     }
 
-    if (cache[entity] && cache[entity][id]) {
-      return cache[entity][id];
+    if (cache.get(getCacheKey(entity, id))) {
+      return JSON.parse(cache.get(getCacheKey(entity, id)));
     } else {
-      console.log('invoking API to fetch ' + entity);
+      console.log('Invoking API to fetch ' + entity);
       var result = _retry(function() {
         return DoubleClickCampaigns[entity].get(profileId, id);
       }, DEFAULT_RETRIES, DEFAULT_SLEEP);
 
       if (result) {
-        if (!cache[entity]) {
-          cache[entity] = {};
-        }
-
-        cache[entity][id] = result;
+        cache.put(getCacheKey(entity, id), result);
       }
 
       return result;
@@ -202,7 +198,7 @@ var CampaignManagerDAO = function(profileId) {
    *  obj: Object to insert or update
    */
   this.update = function(entity, obj) {
-    console.log('updating entity ' + entity);
+    console.log('Updating entity ' + entity);
     console.log('entity id: ' + obj.id);
     if(obj.id) {
       return _retry(function() {

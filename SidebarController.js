@@ -208,6 +208,71 @@ function writeLogs(job) {
 }
 
 /**
+ * Initializes a push job. Primarily focused on incrementing the job id which
+ * is part of cache keys, this prevents from stale objects in the cache to be
+ * reused by a new job execution.
+ *
+ * params:
+ *  job: Empty object
+ */
+function _initializeJob(job) {
+  var userProperties = PropertiesService.getUserProperties();
+
+  var jobId = userProperties.getProperty('jobId');
+
+  if(!jobId) {
+    userProperties.setProperty('jobId', 0);
+  } else {
+    userProperties.setProperty('jobId', Number(jobId) + 1);
+  }
+
+  job.jobId = userProperties.getProperty('jobId');
+
+  return job;
+}
+function initializeJob(job) {
+  return _invoke('_initializeJob', job);
+}
+
+/**
+ * Write logs to the Log tab
+ *
+ * params:
+ *  job.jobs: List of jobs to process
+ *  job.jobs[1..N].logs: logs to output
+ *  job.offset: offset to write in case existing logs already exist. If offset
+ *  is 0 this also clears the log tab
+ */
+function _writeLogs(job) {
+  var sheetDAO = new SheetDAO();
+  var output = [];
+
+  job.offset = job.offset || 0;
+  var range = 'A' + (job.offset + 1) + ':B';
+
+  for(var i = 0; i < job.jobs.length && job.jobs[i].logs; i++) {
+    var logs = job.jobs[i].logs;
+
+    for(var j = 0; j < logs.length; j++) {
+      output.push(logs[j]);
+    }
+
+    job.jobs[i].logs = [];
+  }
+
+  if(output.length > 0) {
+    job.offset += output.length;
+
+    sheetDAO.setValues('Log', range + (job.offset), output);
+  }
+
+  return job;
+}
+function writeLogs(job) {
+  return _invoke('_writeLogs', job);
+}
+
+/**
  * Creates load jobs for items in the feed for a particular entity.
  *
  * params:
