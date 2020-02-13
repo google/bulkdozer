@@ -1302,7 +1302,13 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
     this.assign(placement, 'siteId', feedItem, fields.siteId, true);
     this.assign(placement, 'placementGroupId', feedItem, fields.placementGroupId, false);
     this.assign(placement, 'campaignId', feedItem, fields.campaignId, true);
-    this.assign(placement, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
+
+    if(!placement.tagSetting) {
+      placement.tagSetting = {};
+    }
+    this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
+
+    console.log(placement);
 
     placement.paymentSource = 'PLACEMENT_AGENCY_PAID';
 
