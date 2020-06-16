@@ -1082,7 +1082,17 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
     }
 
     if(placement.size) {
-      feedItem[fields.placementAssetSize] = String(placement.size.width) + 'x' + String(placement.size.height);
+      var sizes = [String(placement.size.width) + 'x' + String(placement.size.height)];
+
+      if(placement.additionalSizes) {
+        for(var i = 0; i < placement.additionalSizes.length; i++) {
+          var additionalSize = placement.additionalSizes[i];
+
+          sizes.push(String(additionalSize.width) + 'x' + String(additionalSize.height));
+        }
+      }
+
+      feedItem[fields.placementAssetSize] = sizes.join(', ');
     }
 
     // Handle landing pages
@@ -1236,6 +1246,65 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
   }
 
   /**
+   * Logic to process placement size and additional sizes based on comma
+   * separated values list from the feed
+   *
+   * params:
+   *  placement: CM placement object
+   *  sizeText: Comma separated list of width + 'x' + height.
+   *    e.g.: 300x600, 800x160
+   */
+  function processSizes(placement, sizeText) {
+    console.log('processing sizes');
+    var rawSizes = sizeText.split(',');
+    var placementSizes = [];
+
+    for(var i = 0; i < rawSizes.length; i++) {
+      console.log(1);
+      var rawSize = rawSizes[i];
+
+      var width = 1;
+      var height = 1;
+
+      if(rawSize && rawSize.toLowerCase().indexOf('x') != -1) {
+        var splitSize = rawSize.toLowerCase().trim().split('x');
+        width = parseInt(splitSize[0]);
+        height = parseInt(splitSize[1]);
+      }
+
+      var sizes = cmDAO.getSize(width, height);
+      console.log(2);
+      var found = false;
+
+      for(var j = 0; j < sizes.length && !found; j++) {
+        var size = sizes[j];
+        if(height === size['height'] && width === size['width']) {
+          placementSizes.push({'id': size.id});
+          found = true;
+        }
+      }
+
+      if(!found) {
+        placementSizes.push({'width': width, 'height': height});
+      }
+    }
+
+    console.log(3);
+    placement['size'] = null;
+    placement['additionalSizes'] = [];
+
+    for(var j = 0; j < placementSizes.length; j++) {
+      console.log(4);
+      var size = placementSizes[j];
+      if(j == 0) {
+        placement['size'] = size;
+      } else {
+        placement['additionalSizes'].push(size);
+      }
+    }
+  }
+
+  /**
    * Logic to process compatibility
    *
    * params:
@@ -1253,31 +1322,8 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
       placement['tagFormats'] = ['PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH'];
     } else {
       placement['compatibility'] = 'DISPLAY';
-      var raw_size = feedItem[fields.placementAssetSize];
 
-      var width = 1;
-      var height = 1;
-
-      if(raw_size && raw_size.toLowerCase().indexOf('x') != -1) {
-        var splitSize = raw_size.toLowerCase().trim().split('x');
-        width = parseInt(splitSize[0]);
-        height = parseInt(splitSize[1]);
-      }
-
-      var sizes = cmDAO.getSize(width, height);
-
-      placement['size'] = null;
-
-      for(var i = 0; i < sizes.length && !placement[size]; i++) {
-        var size = sizes[i];
-        if(height === size['height'] && width === size['width']) {
-          placement[size] = {'id': size.id};
-        }
-      }
-
-      if(!placement['size']) {
-        placement['size'] = {'width': width, 'height': height}
-      }
+      processSizes(placement, feedItem[fields.placementAssetSize]);
 
       placement['tagFormats'] = [
           'PLACEMENT_TAG_STANDARD', 'PLACEMENT_TAG_JAVASCRIPT',
@@ -1307,8 +1353,6 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
       placement.tagSetting = {};
     }
     this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
-
-    console.log(placement);
 
     placement.paymentSource = 'PLACEMENT_AGENCY_PAID';
 
