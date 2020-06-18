@@ -14,6 +14,38 @@
  *     limitations under the License.
  */
 
+var DataUtils = function() {
+  this.creativeRotationType = function(creativeRotation) {
+    if (creativeRotation) {
+      if (creativeRotation.type == 'CREATIVE_ROTATION_TYPE_SEQUENTIAL' &&
+          !creativeRotation.weightCalculationStrategy) {
+        return 'SEQUENTIAL';
+      } else if (
+          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
+          creativeRotation.weightCalculationStrategy ==
+              'WEIGHT_STRATEGY_EQUAL') {
+        return 'EVEN'
+      } else if (
+          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
+          creativeRotation.weightCalculationStrategy ==
+              'WEIGHT_STRATEGY_CUSTOM') {
+        return 'CUSTOM'
+      } else if (
+          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
+          creativeRotation.weightCalculationStrategy ==
+              'WEIGHT_STRATEGY_HIGHEST_CTR') {
+        return 'CLICK-THROUGH RATE'
+      } else if (
+          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
+          creativeRotation.weightCalculationStrategy ==
+              'WEIGHT_STRATEGY_OPTIMIZED') {
+        return 'OPTIMIZED'
+      }
+    }
+  }
+}
+var dataUtils = new DataUtils();
+
 /**
  * Base class for all loaders, provides common functionality and top level
  * orchestration of common flows
@@ -1547,32 +1579,7 @@ var AdLoader = function(sheetDAO, cmDAO) {
 
     var creativeRotation = ad.creativeRotation;
 
-    if (creativeRotation) {
-      if (creativeRotation.type == 'CREATIVE_ROTATION_TYPE_SEQUENTIAL' &&
-          !creativeRotation.weightCalculationStrategy) {
-        feedItem[fields.creativeRotation] = 'SEQUENTIAL';
-      } else if (
-          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
-          creativeRotation.weightCalculationStrategy ==
-              'WEIGHT_STRATEGY_EQUAL') {
-        feedItem[fields.creativeRotation] = 'EVEN'
-      } else if (
-          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
-          creativeRotation.weightCalculationStrategy ==
-              'WEIGHT_STRATEGY_CUSTOM') {
-        feedItem[fields.creativeRotation] = 'CUSTOM'
-      } else if (
-          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
-          creativeRotation.weightCalculationStrategy ==
-              'WEIGHT_STRATEGY_HIGHEST_CTR') {
-        feedItem[fields.creativeRotation] = 'CLICK-THROUGH RATE'
-      } else if (
-          creativeRotation.type == 'CREATIVE_ROTATION_TYPE_RANDOM' &&
-          creativeRotation.weightCalculationStrategy ==
-              'WEIGHT_STRATEGY_OPTIMIZED') {
-        feedItem[fields.creativeRotation] = 'OPTIMIZED'
-      }
-    }
+    feedItem[fields.creativeRotation] = dataUtils.creativeRotationType(ad.creativeRotation);
 
     feedItem[fields.adArchived] = ad.archived;
     feedItem[fields.adPriority] =
@@ -2035,6 +2042,87 @@ function getLoader(entity) {
 // Gets the profile id from the Store tab
 function getProfileId() {
   return getSheetDAO().getValue('Store', 'B2');
+}
+
+/**
+ * Given lists of CM objects builds a hierarchy
+ * params:
+ *  job.campaigns: List of campaigns
+ *  job.placements: List of placements
+ *  job.placementGroups: List of placement groups
+ *  job.ads: List of ads
+ *  job.landingPages: List of Landing Pages
+ *  job.creatives: List of creatives
+ *  job.eventTags: List of event tags
+ *
+ * returns: job.hierarchy, a list of campaigns with the hierarchy underneath
+ */
+function doBuildHierarchy(job) {
+  console.log('Inside build hierarchy');
+  job.hierarchy = [];
+
+  forEach(job.campaigns, function(index, campaign) {
+    job.hierarchy.push(campaign);
+
+    campaign.placements = [];
+    campaign.placementGroups = [];
+
+    forEach(job.placementGroups, function(index, placementGroup) {
+      placementGroup.placements = [];
+
+      if(placementGroup.campaignId == campaign.id) {
+        campaign.placementGroups.push(placementGroup);
+      }
+
+      forEach(job.placements, function(index, placement) {
+        if(placement.placementGroupId == placementGroup.id) {
+          placementGroup.placements.push(placement);
+        }
+      });
+    });
+
+    forEach(job.placements, function(index, placement) {
+      placement.ads = [];
+
+      if(placement.campaignId == campaign.id && !placement.placementGroupId) {
+        campaign.placements.push(placement);
+      }
+
+      forEach(job.ads, function(index, ad) {
+        forEach(ad.placementAssignments, function(index, assignment) {
+          if(assignment.placementId == placement.id) {
+            placement.ads.push(ad);
+          }
+        });
+
+        ad.creatives = [];
+        forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
+          ad.creatives.push(assignment);
+
+          forEach(job.creatives, function(index, creative) {
+            if(assignment.creativeId == creative.id) {
+              assignment.creative = creative;
+            }
+          });
+
+          var landingPageId = null;
+          if(assignment.clickThroughUrl.defaultLandingPage) {
+            landingPageId = campaign.defaultLandingPageId;
+          } else {
+            landingPageId = assignment.clickThroughUrl.landingPageId;
+          }
+
+          forEach(job.landingPages, function(index, landingPage) {
+            if(landingPageId == landingPage.id) {
+              assignment.landingPage = landingPage;
+            }
+          });
+        });
+      });
+    });
+  });
+
+  return job;
 }
 
 // CM DAO used by all loaders

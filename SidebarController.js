@@ -94,6 +94,68 @@ function cmLoad(job) {
 }
 
 /**
+ * Fetches items to load from CM, maps to feed and writes to the sheet
+ * params:
+ *  job.entity defines which entity to load
+ *  job.idsToLoad defines specific item ids to load
+ *  job.parentItemIds ids of parent items to load child items for
+ */
+function _cmFetch(job) {
+  var loader = getLoader(job.entity);
+
+  job.itemsToLoad = loader.fetchItemsToLoad(job);
+
+  return job;
+}
+function cmFetch(job) {
+  return _invoke('_cmFetch', job);
+}
+
+/**
+ * Given lists of CM objects builds a hierarchy
+ * params:
+ *  job.campaigns: List of campaigns
+ *  job.placements: List of placements
+ *  job.placementGroups: List of placement groups
+ *  job.ads: List of ads
+ *  job.landingPages: List of Landing Pages
+ *  job.creatives: List of creatives
+ *  job.eventTags: List of event tags
+ *
+ * returns: job.hierarchy
+ */
+function _buildHierarchy(job) {
+  doBuildHierarchy(job);
+
+  return job;
+}
+function buildHierarchy(job) {
+  return _invoke('_buildHierarchy', job);
+}
+
+/**
+ * Given lists of CM objects builds a hierarchy
+ * params:
+ *  job.campaigns: List of campaigns
+ *  job.placements: List of placements
+ *  job.placementGroups: List of placement groups
+ *  job.ads: List of ads
+ *  job.landingPages: List of Landing Pages
+ *  job.creatives: List of creatives
+ *  job.eventTags: List of event tags
+ *
+ * returns: job.hierarchy
+ */
+function _qa(job) {
+  qaByAdAggregatedCreativeRotation(job);
+
+  return job;
+}
+function qa(job) {
+  return _invoke('_qa', job);
+}
+
+/**
  * Pushes data to CM
  *
  * params:
@@ -232,44 +294,6 @@ function _initializeJob(job) {
 }
 function initializeJob(job) {
   return _invoke('_initializeJob', job);
-}
-
-/**
- * Write logs to the Log tab
- *
- * params:
- *  job.jobs: List of jobs to process
- *  job.jobs[1..N].logs: logs to output
- *  job.offset: offset to write in case existing logs already exist. If offset
- *  is 0 this also clears the log tab
- */
-function _writeLogs(job) {
-  var sheetDAO = new SheetDAO();
-  var output = [];
-
-  job.offset = job.offset || 0;
-  var range = 'A' + (job.offset + 1) + ':B';
-
-  for(var i = 0; i < job.jobs.length && job.jobs[i].logs; i++) {
-    var logs = job.jobs[i].logs;
-
-    for(var j = 0; j < logs.length; j++) {
-      output.push(logs[j]);
-    }
-
-    job.jobs[i].logs = [];
-  }
-
-  if(output.length > 0) {
-    job.offset += output.length;
-
-    sheetDAO.setValues('Log', range + (job.offset), output);
-  }
-
-  return job;
-}
-function writeLogs(job) {
-  return _invoke('_writeLogs', job);
 }
 
 /**

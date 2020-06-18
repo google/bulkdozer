@@ -229,9 +229,11 @@ var SheetDAO = function() {
     if(!result) {
       var sheet = getSheet(sheetName);
 
-      result = sheet.getRange(range);
+      if(sheet) {
+        result = sheet.getRange(range);
 
-      cachePut(sheetName, range, result);
+        cachePut(sheetName, range, result);
+      }
     }
 
     return result;
@@ -269,7 +271,9 @@ var SheetDAO = function() {
   this.clear = function(sheetName, range) {
     var range = getRange(sheetName, range);
 
-    range.clear();
+    if(range) {
+      range.clear();
+    }
   }
 
   /**

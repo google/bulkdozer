@@ -40,3 +40,18 @@ function bulkdozer() {
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
+/**
+ * For each implementation, invokes func(index, item) for each item in the list
+ * list: Array of items to iterate
+ * func: function that takes integer index and item as parameters
+ */
+function forEach(items, func) {
+  if(Array.isArray(items)) {
+    for(var i = 0; i < items.length; i++) {
+      if(func) {
+        func(i, items[i]);
+      }
+    }
+  }
+}
+

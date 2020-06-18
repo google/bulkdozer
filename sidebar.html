@@ -20,6 +20,21 @@
  */
 
 /**
+ * For each implementation, invokes func(index, item) for each item in the list
+ * list: Array of items to iterate
+ * func: function that takes integer index and item as parameters
+ */
+function forEach(list, func) {
+  if(list && list.length > 0) {
+    for(var i = 0; i < list.length; i++) {
+      if(func) {
+        func(i, list[i]);
+      }
+    }
+  }
+}
+
+/**
  * Displays terms and conditions tab of the feed
  */
 function showTerms() {
@@ -109,6 +124,10 @@ function clearFeed() {
       {
         'sheetName': 'Log',
         'range': 'A1:B'
+      },
+      {
+        'sheetName': 'QA',
+        'range': 'A2:AZ'
       }
     ];
 
@@ -162,6 +181,134 @@ function disableJobs(jobs) {
 }
 
 /**
+ * Identifies items to load and returns promise with populated jobs
+ */
+function identifyItemsToLoad() {
+  var jobs = [
+    {
+      'entity': 'AdvertiserLandingPages'
+    },
+    {
+      'entity': 'Campaigns'
+    },
+    {
+      'entity': 'EventTags'
+    },
+    {
+      'entity': 'Creatives'
+    },
+    {
+      'entity': 'PlacementGroups'
+    },
+    {
+      'entity': 'Placements'
+    },
+    {
+      'entity': 'Ads'
+    },
+    {
+      'entity': 'PlacementPricingSchedule'
+    },
+    {
+      'entity': 'AdCreativeAssignment'
+    },
+    {
+      'entity': 'AdPlacementAssignment'
+    },
+    {
+      'entity': 'AdEventTagAssignment'
+    }
+  ];
+
+  return new Runner().run('identifySpecifiedItemsToLoad', jobs);
+}
+
+function configureMainEntityFetchJobs(jobsMap) {
+  jobsMap['AdvertiserLandingPages'].run = true;
+  jobsMap['AdvertiserLandingPages'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+
+  jobsMap['Campaigns'].run = true;
+  jobsMap['Campaigns'].preFetchConfigs = [
+    {
+      'entity': 'AdvertiserLandingPages',
+      'listName': 'landingPages',
+      'filterName': 'ids',
+      'fieldName': 'defaultLandingPageId'
+    }
+  ]
+
+  jobsMap['PlacementGroups'].run = true;
+  jobsMap['PlacementGroups'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+  jobsMap['PlacementGroups'].preFetchConfigs = [
+    {
+      'entity': 'Campaigns',
+      'listName': 'campaigns',
+      'filterName': 'ids',
+      'fieldName': 'campaignId'
+    },{
+      'entity': 'Sites',
+      'listName': 'sites',
+      'filterName': 'ids',
+      'fieldName': 'siteId'
+    }
+  ];
+
+  jobsMap['Placements'].run = true;
+  jobsMap['Placements'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+  jobsMap['Placements'].placementGroupIds = jobsMap['PlacementGroups'].idsToLoad;
+  jobsMap['Placements'].preFetchConfigs = [
+    {
+      'entity': 'Campaigns',
+      'listName': 'campaigns',
+      'filterName': 'ids',
+      'fieldName': 'campaignId'
+    },{
+      'entity': 'Sites',
+      'listName': 'sites',
+      'filterName': 'ids',
+      'fieldName': 'siteId'
+    },{
+      'entity': 'PlacementGroups',
+      'listName': 'placementGroups',
+      'filterName': 'ids',
+      'fieldName': 'placementGroupId'
+    }
+  ];
+
+  jobsMap['Ads'].run = true;
+  jobsMap['Ads'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+  jobsMap['Ads'].placementIds = jobsMap['Placements'].idsToLoad;
+  jobsMap['Ads'].preFetchConfigs = [
+    {
+      'entity': 'Campaigns',
+      'listName': 'campaigns',
+      'filterName': 'ids',
+      'fieldName': 'campaignId'
+    },{
+      'entity': 'Placements',
+      'listName': 'placements',
+      'filterName': 'ids',
+      'fieldName': 'placementId'
+    },{
+      'entity': 'PlacementGroups',
+      'listName': 'placementGroups',
+      'filterName': 'ids',
+      'fieldName': 'placementGroupId'
+    }
+  ];
+
+  jobsMap['Creatives'].run = true;
+  jobsMap['Creatives'].campaignIds = jobsMap['Campaigns'].idsToLoad;
+  jobsMap['Creatives'].preFetchConfigs = [
+    {
+      'entity': 'Campaigns',
+      'listName': 'campaigns',
+      'filterName': 'ids',
+      'fieldName': 'campaignId'
+    }
+  ];
+}
+/**
  * Loads data from CM
  */
 function loadFromCM() {
@@ -178,43 +325,7 @@ function loadFromCM() {
       console.log('Starting job: ' + result[0].jobId);
 
       return logger.clear().then(function(result) {
-        var jobs = [
-          {
-            'entity': 'AdvertiserLandingPages'
-          },
-          {
-            'entity': 'Campaigns'
-          },
-          {
-            'entity': 'EventTags'
-          },
-          {
-            'entity': 'Creatives'
-          },
-          {
-            'entity': 'PlacementGroups'
-          },
-          {
-            'entity': 'Placements'
-          },
-          {
-            'entity': 'Ads'
-          },
-          {
-            'entity': 'PlacementPricingSchedule'
-          },
-          {
-            'entity': 'AdCreativeAssignment'
-          },
-          {
-            'entity': 'AdPlacementAssignment'
-          },
-          {
-            'entity': 'AdEventTagAssignment'
-          }
-        ];
-
-        return new Runner().run('identifySpecifiedItemsToLoad', jobs);
+        return identifyItemsToLoad();
       });
     }).then(function(jobs) {
       return logger.log(jobs);
@@ -225,89 +336,7 @@ function loadFromCM() {
 
       disableJobs(jobs);
 
-      jobsMap['AdvertiserLandingPages'].run = true;
-      jobsMap['AdvertiserLandingPages'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-
-      jobsMap['Campaigns'].run = true;
-      jobsMap['Campaigns'].preFetchConfigs = [
-        {
-          'entity': 'AdvertiserLandingPages',
-          'listName': 'landingPages',
-          'filterName': 'ids',
-          'fieldName': 'defaultLandingPageId'
-        }
-      ]
-
-      jobsMap['PlacementGroups'].run = true;
-      jobsMap['PlacementGroups'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-      jobsMap['PlacementGroups'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        },{
-          'entity': 'Sites',
-          'listName': 'sites',
-          'filterName': 'ids',
-          'fieldName': 'siteId'
-        }
-      ];
-
-      jobsMap['Placements'].run = true;
-      jobsMap['Placements'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-      jobsMap['Placements'].placementGroupIds = jobsMap['PlacementGroups'].idsToLoad;
-      jobsMap['Placements'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        },{
-          'entity': 'Sites',
-          'listName': 'sites',
-          'filterName': 'ids',
-          'fieldName': 'siteId'
-        },{
-          'entity': 'PlacementGroups',
-          'listName': 'placementGroups',
-          'filterName': 'ids',
-          'fieldName': 'placementGroupId'
-        }
-      ];
-
-      jobsMap['Ads'].run = true;
-      jobsMap['Ads'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-      jobsMap['Ads'].placementIds = jobsMap['Placements'].idsToLoad;
-      jobsMap['Ads'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        },{
-          'entity': 'Placements',
-          'listName': 'placements',
-          'filterName': 'ids',
-          'fieldName': 'placementId'
-        },{
-          'entity': 'PlacementGroups',
-          'listName': 'placementGroups',
-          'filterName': 'ids',
-          'fieldName': 'placementGroupId'
-        }
-      ];
-
-      jobsMap['Creatives'].run = true;
-      jobsMap['Creatives'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-      jobsMap['Creatives'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        }
-      ];
+      configureMainEntityFetchJobs(jobsMap);
 
       return new Runner().run('cmLoad', jobs);
     }).then(function(jobs) {
@@ -361,6 +390,93 @@ function loadFromCM() {
       return new Runner().run('cmLoad', jobs);
     }).then(function(jobs) {
       return logger.log(jobs);
+    }).then(function(jobs) {
+      setStatus('Ready');
+
+      toggleEnabledButtons();
+    }).catch(function(error) {
+      setStatus('An error happened!');
+
+      console.log(error);
+    });
+  }
+}
+
+function qaCMLoad() {
+  if(confirm('Replace data in the feed with data from Campaign Manager?')) {
+    toggleEnabledButtons();
+
+    var logger = getLogger();
+
+    setStatus('Identifying item ids to load');
+
+    google.script.run.goToTab('QA');
+
+    return new Runner().run('clear', [{
+      'sheetName': 'QA',
+      'range': 'A2:AZ',
+      'run': true
+    }]).then(function(result) {
+      return new Runner().run('initializeJob', [{}]).then(function(result) {
+        console.log('Starting job: ' + result[0].jobId);
+
+        return logger.clear().then(function(result) {
+          return identifyItemsToLoad();
+        });
+      });
+    }).then(function(jobs) {
+      setStatus('Loading main entities from CM');
+
+      var jobsMap = getJobsMap(jobs);
+
+      disableJobs(jobs);
+
+      configureMainEntityFetchJobs(jobsMap);
+
+      return new Runner().run('cmFetch', jobs);
+    }).then(function(jobs) {
+      var jobsMap = getJobsMap(jobs);
+      disableJobs(jobs);
+
+      jobsMap['EventTags'].run = true;
+
+      jobsMap['EventTags'].adIds = [];
+      forEach(jobsMap['Ads'].itemsToLoad, function(index, item) {
+        jobsMap['EventTags'].adIds.push(item.id);
+      });
+
+      jobsMap['EventTags'].campaignIds = [];
+      forEach(jobsMap['Campaigns'].itemsToLoad, function(index, item) {
+        jobsMap['EventTags'].campaignIds.push(item.id);
+      });
+
+      jobsMap['EventTags'].preFetchConfigs = [
+        {
+          'entity': 'Campaigns',
+          'listName': 'campaigns',
+          'filterName': 'ids',
+          'fieldName': 'campaignId'
+        }
+      ];
+
+      return new Runner().run('cmFetch', jobs);
+    }).then(function(jobs) {
+      var jobsMap = getJobsMap(jobs);
+      var hierarchyJob = {
+        'campaigns': jobsMap['Campaigns'].itemsToLoad,
+        'placements': jobsMap['Placements'].itemsToLoad,
+        'placementGroups': jobsMap['PlacementGroups'].itemsToLoad,
+        'ads': jobsMap['Ads'].itemsToLoad,
+        'landingPages': jobsMap['AdvertiserLandingPages'].itemsToLoad,
+        'creatives': jobsMap['Creatives'].itemsToLoad,
+        'eventTags': jobsMap['EventTags'].itemsToLoad
+      }
+
+      return new Runner().run('buildHierarchy', [hierarchyJob]);
+    }).then(function(jobs) {
+      logger.log(jobs);
+      console.log(jobs);
+      return new Runner().run('qa', jobs);
     }).then(function(jobs) {
       setStatus('Ready');
 

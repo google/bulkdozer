@@ -30,7 +30,7 @@ var CampaignManagerDAO = function(profileId) {
   const DEFAULT_RETRIES = 4;
   const CACHE_EXPIRATION = 21600;
 
-  var cache = CacheService.getUserCache();
+  var cache = getCache();
   var listCache = {};
   var userProperties = PropertiesService.getUserProperties();
   var jobId = userProperties.getProperty('jobId');
