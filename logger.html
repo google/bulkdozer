@@ -69,6 +69,15 @@ var Logger = function() {
    *   jobs: list of jobs
    */
   this.log = function(jobs) {
+    forEach(jobs, function(index, job) {
+      if(job.error) {
+        if(!job.logs) {
+          job.logs = [];
+        }
+        job.logs.push([new Date(), job.error]);
+      }
+    });
+
     var job = {
       'jobs': jobs,
       'offset': offset

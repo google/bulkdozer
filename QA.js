@@ -14,6 +14,16 @@
  *     limitations under the License.
  */
 
+/**
+ * Calls function for each ad.
+ *
+ * parameters:
+ *  hierarchy: CM Hierarchy created by buildHierarchy function
+ *  func: callback function with the following signature: f(campaign,
+ *  placementGroup, placement, ad)
+ *  Note: For placements assigned directly to the campaign (i.e. no placement
+ *  group) the placementGroup parameter in the callback will be null
+ */
 function forEachAd(hierarchy, func) {
   forEach(hierarchy, function(index, campaign) {
     forEach(campaign.placementGroups, function(index, placementGroup) {
@@ -32,13 +42,126 @@ function forEachAd(hierarchy, func) {
   });
 }
 
-function qaByAdAggregatedCreativeRotation(job) {
+/**
+ * Calls function for each ad creative assignment.
+ *
+ * parameters:
+ *  hierarchy: CM Hierarchy created by buildHierarchy function
+ *  func: callback function with the following signature: f(campaign,
+ *  placementGroup, placement, ad, creativeAssignment)
+ *  Note: For placements assigned directly to the campaign (i.e. no placement
+ *  group) the placementGroup parameter in the callback will be null
+ */
+function forEachAdCreativeAssignment(hierarchy, func) {
+  forEach(hierarchy, function(index, campaign) {
+    forEach(campaign.placementGroups, function(index, placementGroup) {
+      forEach(placementGroup.placements, function(index, placement) {
+        forEach(placement.ads, function(index, ad) {
+          forEach(ad.creatives, function(index, creative) {
+            func(campaign, placementGroup, placement, ad, creative);
+          });
+        });
+      });
+    });
+
+    forEach(campaign.placements, function(index, placement) {
+      forEach(placement.ads, function(index, ad) {
+        forEach(ad.creatives, function(index, creative) {
+          func(campaign, null, placement, ad, creative);
+        });
+      });
+    });
+  });
+}
+
+/**
+ * Implements the Default QA style
+ */
+function qaByCreativeRotation(job) {
+  if(!job.logs) {
+    job.logs = [];
+  }
+  job.logs.push([new Date(), 'Generating QA Report']);
+
+  var feed = [];
   var feed = [];
 
   var cmDAO = new CampaignManagerDAO(getProfileId());
   var sheetDAO = getSheetDAO();
 
-  forEachAd(job.hierarchy, function(campaign, placementGroup, placement, ad, creative) {
+  forEachAdCreativeAssignment(job.hierarchy, function(campaign, placementGroup, placement, ad, creative) {
+    var feedItem = {};
+
+    feedItem['Campaign Name'] = campaign.name;
+    feedItem['Campaign ID'] = campaign.id;
+
+    if(placementGroup) {
+      feedItem['Package Name'] = placementGroup.name;
+      feedItem['Package ID'] = placementGroup.id;
+
+      if(placementGroup.pricingSchedule && placementGroup.pricingSchedule.pricingPeriods.length > 0) {
+        feedItem['Rate'] = placementGroup.pricingSchedule.pricingPeriods[0].rateOrCostNanos / 1000000000;
+        feedItem['Units'] = placementGroup.pricingSchedule.pricingPeriods[0].units;
+      }
+    }
+
+    feedItem['Placement Name'] = placement.name;
+    feedItem['Placement ID'] = placement.id
+    feedItem['Placement Start Date'] = placement.pricingSchedule.startDate;
+    feedItem['Placement End Date'] = placement.pricingSchedule.endDate;
+    feedItem['Ad Blocking'] = placement.adBlockingOptOut;
+    feedItem['Cost Structure'] = placement.pricingSchedule.pricingType;
+
+    feedItem['Ad Name'] = ad.name;
+    feedItem['Ad ID'] = ad.id;
+    feedItem['Ad Type'] = ad.type;
+    feedItem['Asset Size'] = ad.size ? ad.size.width + 'x' + ad.size.height : '';
+    feedItem['Ad Start Date'] = ad.startTime;
+    feedItem['Ad End Date'] = ad.endTime;
+    if(ad.targetingTemplateId) {
+      var targetingTemplate = cmDAO.get('TargetingTemplates', ad.targetingTemplateId);
+
+      if(targetingTemplate) {
+        feedItem['Targeting Template ID'] = targetingTemplate.id;
+        feedItem['Targeting Template Name'] = targetingTemplate.name;
+      }
+    }
+    feedItem['Hard Cutoff'] = ad.deliverySchedule ? ad.deliverySchedule.hardCutoff : '';
+
+    feedItem['Creative Name'] = creative.creative.name;
+    feedItem['Creative ID'] = creative.creative.id;
+    feedItem['Creative Size'] = creative.size ? creative.size.width + 'x' + creative.size.height : '';
+    feedItem['Creative Rotation Weight'] = creative.weight;
+    feedItem['Creative Start Date'] = creative.startTime;
+    feedItem['Creative End Date'] = creative.endTime;
+    if(creative.landingPage) {
+      feedItem['Landing Page Name'] = creative.landingPage.name
+      feedItem['Landing Page'] = creative.landingPage.url;
+      feedItem['Landing Page ID'] = creative.landingPage.id;
+    }
+
+    feed.push(feedItem);
+  });
+
+  sheetDAO.dictToSheet('QA', feed);
+}
+
+/**
+ * Implements the Aggregated Creative Rotation QA style
+ */
+function qaByAdAggregatedCreativeRotation(job) {
+
+  if(!job.logs) {
+    job.logs = [];
+  }
+  job.logs.push([new Date(), 'Generating QA Report']);
+
+  var feed = [];
+
+  var cmDAO = new CampaignManagerDAO(getProfileId());
+  var sheetDAO = getSheetDAO();
+
+  forEachAd(job.hierarchy, function(campaign, placementGroup, placement, ad) {
     var feedItem = {};
     feed.push(feedItem);
 

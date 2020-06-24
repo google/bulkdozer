@@ -1292,7 +1292,6 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
     var placementSizes = [];
 
     for(var i = 0; i < rawSizes.length; i++) {
-      console.log(1);
       var rawSize = rawSizes[i];
 
       var width = 1;
@@ -1305,7 +1304,6 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
       }
 
       var sizes = cmDAO.getSize(width, height);
-      console.log(2);
       var found = false;
 
       for(var j = 0; j < sizes.length && !found; j++) {
@@ -1321,12 +1319,10 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
       }
     }
 
-    console.log(3);
     placement['size'] = null;
     placement['additionalSizes'] = [];
 
     for(var j = 0; j < placementSizes.length; j++) {
-      console.log(4);
       var size = placementSizes[j];
       if(j == 0) {
         placement['size'] = size;
@@ -2058,8 +2054,13 @@ function getProfileId() {
  * returns: job.hierarchy, a list of campaigns with the hierarchy underneath
  */
 function doBuildHierarchy(job) {
-  console.log('Inside build hierarchy');
   job.hierarchy = [];
+
+  if(!job.logs) {
+    job.logs = [];
+  }
+
+  job.logs.push([new Date(), 'Building CM entity hierarchy']);
 
   forEach(job.campaigns, function(index, campaign) {
     job.hierarchy.push(campaign);

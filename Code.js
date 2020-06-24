@@ -33,9 +33,16 @@ function onOpen(e) {
  * Bulkdozer menu that displays the sidebar
  */
 function bulkdozer() {
-  var html = HtmlService.createTemplateFromFile('Bulkdozer')
-      .evaluate()
-      .setTitle('Bulkdozer');
+  var html = null;
+  if(getSheetDAO().isQA()) {
+    var html = HtmlService.createTemplateFromFile('BulkdozerQA')
+        .evaluate()
+        .setTitle('Bulkdozer');
+  } else {
+    var html = HtmlService.createTemplateFromFile('Bulkdozer')
+        .evaluate()
+        .setTitle('Bulkdozer');
+  }
 
   SpreadsheetApp.getUi().showSidebar(html);
 }

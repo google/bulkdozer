@@ -261,6 +261,9 @@ var SheetDAO = function() {
 
   // PUBLIC METHODS
 
+  this.isQA = function() {
+    return getSheet('QA') != null;
+  }
   /**
    * Clears a range in the sheet
    *

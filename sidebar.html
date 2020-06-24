@@ -60,7 +60,11 @@ function toggleEnabledButtons() {
   ];
 
   for(var i = 0; i < buttonIds.length; i++) {
-    document.getElementById(buttonIds[i]).disabled = !document.getElementById(buttonIds[i]).disabled;
+    var button = document.getElementById(buttonIds[i]);
+
+    if(button) {
+      button.disabled = !button.disabled;
+    }
   }
 }
 
@@ -308,6 +312,7 @@ function configureMainEntityFetchJobs(jobsMap) {
     }
   ];
 }
+
 /**
  * Loads data from CM
  */
@@ -402,6 +407,9 @@ function loadFromCM() {
   }
 }
 
+/**
+ * Loads data from CM in the QA format
+ */
 function qaCMLoad() {
   if(confirm('Replace data in the feed with data from Campaign Manager?')) {
     toggleEnabledButtons();
@@ -410,7 +418,9 @@ function qaCMLoad() {
 
     setStatus('Identifying item ids to load');
 
-    google.script.run.goToTab('QA');
+    logger.clear().then(function() {
+      google.script.run.goToTab('Log');
+    });
 
     return new Runner().run('clear', [{
       'sheetName': 'QA',
@@ -420,9 +430,7 @@ function qaCMLoad() {
       return new Runner().run('initializeJob', [{}]).then(function(result) {
         console.log('Starting job: ' + result[0].jobId);
 
-        return logger.clear().then(function(result) {
-          return identifyItemsToLoad();
-        });
+        return identifyItemsToLoad();
       });
     }).then(function(jobs) {
       setStatus('Loading main entities from CM');
@@ -435,6 +443,8 @@ function qaCMLoad() {
 
       return new Runner().run('cmFetch', jobs);
     }).then(function(jobs) {
+      logger.log(jobs);
+
       var jobsMap = getJobsMap(jobs);
       disableJobs(jobs);
 
@@ -461,6 +471,7 @@ function qaCMLoad() {
 
       return new Runner().run('cmFetch', jobs);
     }).then(function(jobs) {
+      setStatus('Building CM entity hierarchy');
       var jobsMap = getJobsMap(jobs);
       var hierarchyJob = {
         'campaigns': jobsMap['Campaigns'].itemsToLoad,
@@ -474,14 +485,27 @@ function qaCMLoad() {
 
       return new Runner().run('buildHierarchy', [hierarchyJob]);
     }).then(function(jobs) {
+      setStatus('Generating QA Report');
       logger.log(jobs);
-      console.log(jobs);
       return new Runner().run('qa', jobs);
     }).then(function(jobs) {
-      setStatus('Ready');
+      logger.log(jobs);
+      var error = false;
+
+      forEach(jobs, function(index, job) {
+        if(job.error) {
+          setStatus(job.error);
+          error = true;
+        }
+      });
+
+      if(!error) {
+        setStatus('Ready');
+      }
 
       toggleEnabledButtons();
     }).catch(function(error) {
+      logger.log(jobs);
       setStatus('An error happened!');
 
       console.log(error);
