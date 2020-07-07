@@ -50,7 +50,7 @@ var dataUtils = new DataUtils();
  * Base class for all loaders, provides common functionality and top level
  * orchestration of common flows
  */
-var BaseLoader = function(sheetDAO, cmDAO) {
+var BaseLoader = function(cmDAO) {
   // PRIVATE FIELDS
 
   // Provides access to private methods to the this instance
@@ -69,12 +69,10 @@ var BaseLoader = function(sheetDAO, cmDAO) {
     for(var i = 0; i < children.length; i++) {
       var childConfig = children[i];
       var childMap = {};
+      var childFeedProvider = new FeedProvider(chidConfig.tabName, childConfig.keys);
+      var child = null;
 
-      var childFeed = sheetDAO.sheetToDict(childConfig.tabName);
-
-      for(var j = 0; j < childFeed.length; j++) {
-        var child = childFeed[j];
-
+      while(child = childFeedProvider.next()) {
         child[childConfig.relationshipField] = that.translateId(that.tabName, child, childConfig.relationshipField);
 
         var key = child[childConfig.relationshipField];
@@ -306,20 +304,18 @@ var BaseLoader = function(sheetDAO, cmDAO) {
   this.identifyItemsToLoad = function(job) {
     this.log(job, 'Identifying items to load: ' + this.label);
 
-    if(sheetDAO.tabExists(this.tabName)) {
-      var itemsFeed = sheetDAO.sheetToDict(this.tabName);
-      var idsToLoad = [];
-      job.idsToLoad = idsToLoad;
+    var feedProvider = new FeedProvider(this.tabName, [this.idField]);
+    var feedItem = null;
 
-      idsToLoad[this.entity] = idsToLoad;
+    var idsToLoad = [];
+    job.idsToLoad = idsToLoad;
+    idsToLoad[this.entity] = idsToLoad;
 
-      for (var i = 0; i < itemsFeed.length; i++) {
-        var item = itemsFeed[i],
-            idString = new String(item[this.idField]).trim().toLowerCase();
+    while(feedItem = feedProvider.next()) {
+      var idString = new String(feedItem[this.idField]).trim().toLowerCase();
 
-        if (idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0) {
-          this.pushUnique(idsToLoad, item[this.idField]);
-        }
+      if (idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0) {
+        this.pushUnique(idsToLoad, feedItem[this.idField]);
       }
     }
   }
@@ -418,7 +414,9 @@ var BaseLoader = function(sheetDAO, cmDAO) {
     }
 
     // Clear feed and write loaded items to the feed
-    sheetDAO.dictToSheet(this.tabName, feed);
+    feedProvider = new FeedProvider(this.tabName, [this.idField]);
+    feedProvider.setFeed(feed);
+    feedProvider.save();
   }
 
   /**
@@ -570,9 +568,6 @@ var BaseLoader = function(sheetDAO, cmDAO) {
       if(this.preProcessPush) {
         this.preProcessPush(job);
       }
-
-      // Map feed to object
-      this.processPush(job);
 
       job.cmObject = cmDAO.update(this.entity, job.cmObject);
 

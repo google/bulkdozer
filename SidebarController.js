@@ -147,7 +147,7 @@ function buildHierarchy(job) {
  * returns: job.hierarchy
  */
 function _qa(job) {
-  var qaMode = getSheetDAO().getValue('Store', 'B1');
+  var qaMode = getSheetDAO().getValue('Store', 'B3');
 
   if(qaMode == 'Aggregated Creative Rotation') {
     qaByAdAggregatedCreativeRotation(job);
