@@ -471,7 +471,7 @@ function qaCMLoad() {
 
       return new Runner().run('cmFetch', jobs);
     }).then(function(jobs) {
-      setStatus('Building CM entity hierarchy');
+      setStatus('Generating QA Report');
       var jobsMap = getJobsMap(jobs);
       var hierarchyJob = {
         'campaigns': jobsMap['Campaigns'].itemsToLoad,
@@ -483,13 +483,10 @@ function qaCMLoad() {
         'eventTags': jobsMap['EventTags'].itemsToLoad
       }
 
-      return new Runner().run('buildHierarchy', [hierarchyJob]);
+      return new Runner().run('qa', [hierarchyJob]);
     }).then(function(jobs) {
-      setStatus('Generating QA Report');
-      logger.log(jobs);
-      return new Runner().run('qa', jobs);
-    }).then(function(jobs) {
-      logger.log(jobs);
+      //logger.log(jobs);
+
       var error = false;
 
       forEach(jobs, function(index, job) {

@@ -124,29 +124,9 @@ function cmFetch(job) {
  *
  * returns: job.hierarchy
  */
-function _buildHierarchy(job) {
+function _qa(job) {
   doBuildHierarchy(job);
 
-  return job;
-}
-function buildHierarchy(job) {
-  return _invoke('_buildHierarchy', job);
-}
-
-/**
- * Given lists of CM objects builds a hierarchy
- * params:
- *  job.campaigns: List of campaigns
- *  job.placements: List of placements
- *  job.placementGroups: List of placement groups
- *  job.ads: List of ads
- *  job.landingPages: List of Landing Pages
- *  job.creatives: List of creatives
- *  job.eventTags: List of event tags
- *
- * returns: job.hierarchy
- */
-function _qa(job) {
   var qaMode = getSheetDAO().getValue('Store', 'B3');
 
   if(qaMode == 'Aggregated Creative Rotation') {
@@ -154,6 +134,10 @@ function _qa(job) {
   } else {
     qaByCreativeRotation(job);
   }
+
+  // This is needed for large campaigns, it is too much data to transmit to the
+  // front end
+  job.hierarchy = [];
 
   return job;
 }

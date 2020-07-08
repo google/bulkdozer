@@ -87,7 +87,6 @@ function qaByCreativeRotation(job) {
   var feed = [];
 
   var cmDAO = new CampaignManagerDAO(getProfileId());
-  var sheetDAO = getSheetDAO();
 
   forEachAdCreativeAssignment(job.hierarchy, function(campaign, placementGroup, placement, ad, creative) {
     var feedItem = {};
@@ -143,7 +142,7 @@ function qaByCreativeRotation(job) {
     feed.push(feedItem);
   });
 
-  sheetDAO.dictToSheet('QA', feed);
+  new FeedProvider('QA').setFeed(feed).save();
 }
 
 /**
@@ -159,7 +158,6 @@ function qaByAdAggregatedCreativeRotation(job) {
   var feed = [];
 
   var cmDAO = new CampaignManagerDAO(getProfileId());
-  var sheetDAO = getSheetDAO();
 
   forEachAd(job.hierarchy, function(campaign, placementGroup, placement, ad) {
     var feedItem = {};
@@ -205,5 +203,5 @@ function qaByAdAggregatedCreativeRotation(job) {
 
   });
 
-  sheetDAO.dictToSheet('QA', feed);
+  new FeedProvider('QA').setFeed(feed).save();
 }
