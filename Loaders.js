@@ -69,10 +69,11 @@ var BaseLoader = function(cmDAO) {
     for(var i = 0; i < children.length; i++) {
       var childConfig = children[i];
       var childMap = {};
-      var childFeedProvider = new FeedProvider(chidConfig.tabName, childConfig.keys);
-      var child = null;
 
-      while(child = childFeedProvider.next()) {
+      var feedProvider = new FeedProvider(childConfig.tabName).load();
+
+      var child = null;
+      while(child = feedProvider.next()) {
         child[childConfig.relationshipField] = that.translateId(that.tabName, child, childConfig.relationshipField);
 
         var key = child[childConfig.relationshipField];
@@ -210,13 +211,12 @@ var BaseLoader = function(cmDAO) {
    *  feedItems: list of feed items the entity
    *  fieldName: name of the field in the feedItem to get values for the filter
    */
-  this.preFetchFromFeed = function(entity, listName, filterName, feedItems, fieldName) {
-    if(filterName && feedItems && feedItems.length > 0) {
+  this.preFetchFromFeed = function(entity, listName, filterName, feedProvider, fieldName) {
+    if(filterName && feedProvider && !feedProvider.isEmpty()) {
       var filterValues = [];
 
-      for(var i = 0; i < feedItems.length; i++) {
-        var feedItem = feedItems[i];
-
+      var feedItem = null;
+      while(feedItem = feedProvider.next()) {
         if(feedItem[fieldName] && filterValues.indexOf(feedItem[fieldName]) == -1 && typeof(feedItem[fieldName]) == 'number') {
           filterValues.push(feedItem[fieldName]);
         }
@@ -304,18 +304,18 @@ var BaseLoader = function(cmDAO) {
   this.identifyItemsToLoad = function(job) {
     this.log(job, 'Identifying items to load: ' + this.label);
 
-    var feedProvider = new FeedProvider(this.tabName, [this.idField]);
-    var feedItem = null;
+    var feedProvider = new FeedProvider(this.tabName).load();
 
     var idsToLoad = [];
     job.idsToLoad = idsToLoad;
     idsToLoad[this.entity] = idsToLoad;
 
-    while(feedItem = feedProvider.next()) {
-      var idString = new String(feedItem[this.idField]).trim().toLowerCase();
+    var item = null;
+    while(item = feedProvider.next()) {
+      var idString = new String(item[this.idField]).trim().toLowerCase();
 
       if (idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0) {
-        this.pushUnique(idsToLoad, feedItem[this.idField]);
+        this.pushUnique(idsToLoad, item[this.idField]);
       }
     }
   }
@@ -414,9 +414,7 @@ var BaseLoader = function(cmDAO) {
     }
 
     // Clear feed and write loaded items to the feed
-    feedProvider = new FeedProvider(this.tabName, [this.idField]);
-    feedProvider.setFeed(feed);
-    feedProvider.save();
+    var feedProvider = new FeedProvider(this.tabName).setFeed(feed).save();
   }
 
   /**
@@ -429,21 +427,23 @@ var BaseLoader = function(cmDAO) {
    * sheet of the tab of this instance into the job.jobs field
    */
   this.createPushJobs = function(job) {
-    var feed = sheetDAO.sheetToDict(this.tabName);
+    var feedProvider = new FeedProvider(this.tabName).load();
     job.jobs = [];
 
-    if(feed.length > 0 && job.preFetchConfigs && job.preFetchConfigs.length > 0) {
+    if(!feedProvider.isEmpty() && job.preFetchConfigs && job.preFetchConfigs.length > 0) {
       for(var i = 0; i < job.preFetchConfigs.length; i++) {
         var preFetchConfig = job.preFetchConfigs[i];
 
-        this.preFetchFromFeed(preFetchConfig.entity, preFetchConfig.listName, preFetchConfig.filterName, feed, preFetchConfig.fieldName);
+        this.preFetchFromFeed(preFetchConfig.entity, preFetchConfig.listName, preFetchConfig.filterName, feedProvider, preFetchConfig.fieldName);
       }
     }
 
-    for(var i = 0; i < feed.length; i++) {
+    feedProvider.reset();
+    var feedItem = null;
+    while(feedItem = feedProvider.next()) {
       var pushJob = {
         'entity': job.entity,
-        'feedItem': feed[i]
+        'feedItem': feedItem
       }
 
       job.jobs.push(pushJob);
@@ -569,6 +569,9 @@ var BaseLoader = function(cmDAO) {
         this.preProcessPush(job);
       }
 
+      // Map feed to object
+      this.processPush(job);
+
       job.cmObject = cmDAO.update(this.entity, job.cmObject);
 
       job.feedItem[this.idField] = job.cmObject.id;
@@ -599,8 +602,7 @@ var BaseLoader = function(cmDAO) {
    * returns: job
    */
   this.updateFeed = function(job) {
-    sheetDAO.clear(this.tabName, 'A2:AZ');
-    sheetDAO.dictToSheet(this.tabName, job.feed);
+    new FeedProvider(this.tabName).setFeed(job.feed).save();
 
     for(var i = 0; i < children.length; i++) {
       var childConfig = children[i];
@@ -615,8 +617,7 @@ var BaseLoader = function(cmDAO) {
         }
       }
 
-      sheetDAO.clear(childConfig.tabName, 'A2:AZ');
-      sheetDAO.dictToSheet(childConfig.tabName, childFeed);
+      new FeedProvider(childConfig.tabName).setFeed(childFeed).save();
     }
 
     return job;
@@ -626,14 +627,14 @@ var BaseLoader = function(cmDAO) {
 /**
  * Campaign Loader
  */
-var CampaignLoader = function(sheetDAO, cmDAO) {
+var CampaignLoader = function(cmDAO) {
   this.label = 'Campaign';
   this.entity = 'Campaigns';
   this.tabName = 'Campaign';
   this.idField = fields.campaignId;
   this.listField = 'campaigns';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addReference('Landing Page', fields.landingPageId);
 
@@ -705,14 +706,14 @@ CampaignLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Landing Page Loader
  */
-var LandingPageLoader = function(sheetDAO, cmDAO) {
+var LandingPageLoader = function(cmDAO) {
   this.label = 'Landing Page';
   this.entity = 'AdvertiserLandingPages';
   this.tabName = 'Landing Page';
   this.idField = fields.landingPageId;
   this.listField = 'landingPages';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   /**
    * Processes search options to ensure all required items to load are fetched.
@@ -773,13 +774,13 @@ LandingPageLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Event Tag Loader
  */
-var EventTagLoader = function(sheetDAO, cmDAO) {
+var EventTagLoader = function(cmDAO) {
   this.label = 'Event Tag';
   this.entity = 'EventTags';
   this.tabName = 'Event Tag';
   this.idField = fields.eventTagId;
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addReference('Campaign', fields.campaignId);
 
@@ -923,14 +924,14 @@ EventTagLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Placement Group Loader
  */
-var PlacementGroupLoader = function(sheetDAO, cmDAO) {
+var PlacementGroupLoader = function(cmDAO) {
   this.label = 'Placement Group';
   this.entity = 'PlacementGroups';
   this.tabName = 'Placement Group';
   this.idField = fields.placementGroupId;
   this.listField = 'placementGroups';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addReference('Campaign', fields.campaignId);
 
@@ -1014,7 +1015,7 @@ PlacementGroupLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Placement Loader
  */
-var PlacementLoader = function(sheetDAO, cmDAO) {
+var PlacementLoader = function(cmDAO) {
   var that = this;
   this.label = 'Placement';
   this.entity = 'Placements';
@@ -1022,7 +1023,7 @@ var PlacementLoader = function(sheetDAO, cmDAO) {
   this.idField = fields.placementId;
   this.listField = 'placements';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addChildRelationship('Placement Pricing Schedule', 'pricingSchedule', fields.placementId);
 
@@ -1410,14 +1411,14 @@ PlacementLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Creative Loader
  */
-var CreativeLoader = function(sheetDAO, cmDAO) {
+var CreativeLoader = function(cmDAO) {
   this.label = 'Creative';
   this.entity = 'Creatives';
   this.tabName = 'Creative';
   this.idField = fields.creativeId;
   this.listField = 'creatives';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addReference('Campaign', fields.campaignId);
 
@@ -1519,7 +1520,7 @@ CreativeLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Ad Loader
  */
-var AdLoader = function(sheetDAO, cmDAO) {
+var AdLoader = function(cmDAO) {
   that = this;
   this.label = 'Ad';
   this.entity = 'Ads';
@@ -1527,7 +1528,7 @@ var AdLoader = function(sheetDAO, cmDAO) {
   this.idField = fields.adId;
   this.listField = 'ads';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   this.addReference('Campaign', fields.campaignId);
   this.addChildRelationship('Ad Placement Assignment', 'placementAssignments', fields.adId);
@@ -1749,7 +1750,7 @@ var AdLoader = function(sheetDAO, cmDAO) {
     var ad = job.cmObject;
 
     // Handle base fields
-    ad.active = this.isTrue(feedItem[fields.campaignId]);
+    ad.active = this.isTrue(feedItem[fields.adActive]);
     ad.campaignId = feedItem[fields.campaignId];
     ad.archived = this.isTrue(feedItem[fields.adArchived]);
     ad.startTime = feedItem[fields.adStartDate];
@@ -1837,14 +1838,14 @@ AdLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Ad Placement Loader
  */
-var AdPlacementLoader = function(sheetDAO, cmDAO) {
+var AdPlacementLoader = function(cmDAO) {
   this.label = 'Ad Placement Assignment';
   this.entity = 'Ads';
   this.tabName = 'Ad Placement Assignment';
   this.idField = fields.adId;
   this.listField = 'ads';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   /**
    * @see CampaignLoader.mapFeed
@@ -1876,14 +1877,14 @@ AdPlacementLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Ad Creative Loader
  */
-var AdCreativeLoader = function(sheetDAO, cmDAO) {
+var AdCreativeLoader = function(cmDAO) {
   this.label = 'Ad Creative Assignment';
   this.entity = 'Ads';
   this.tabName = 'Ad Creative Assignment';
   this.idField = fields.adId;
   this.listField = 'ads';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   /**
    * @see CampaignLoader.mapFeed
@@ -1939,14 +1940,14 @@ AdCreativeLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Ad Event Tag Loader
  */
-var AdEventTagLoader = function(sheetDAO, cmDAO) {
+var AdEventTagLoader = function(cmDAO) {
   this.label = 'Ad Event Tag Assignment';
   this.entity = 'Ads';
   this.tabName = 'Event Tag Ad Assignment';
   this.idField = fields.adId;
   this.listField = 'ads';
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   /**
    * @see CampaignLoader.mapFeed
@@ -1981,14 +1982,14 @@ AdEventTagLoader.prototype = Object.create(BaseLoader.prototype);
 /**
  * Placement Pricing Schedule Loader
  */
-var PricingScheduleLoader = function(sheetDAO, cmDAO) {
+var PricingScheduleLoader = function(cmDAO) {
   this.label = 'Placement Pricing Schedule';
   this.entity = 'Placements';
   this.tabName = 'Placement Pricing Schedule';
   this.listField = 'placements';
   this.idField = fields.placementId;
 
-  BaseLoader.call(this, sheetDAO, cmDAO);
+  BaseLoader.call(this, cmDAO);
 
   /**
    * @see CampaignLoader.mapFeed
@@ -2030,7 +2031,11 @@ function getLoader(entity) {
   return getLoaders()[entity];
 }
 
-// Gets the profile id from the Store tab
+/*
+ * Gets the profile id from the Store tab
+ *
+ * returns: profile id
+ */
 function getProfileId() {
   return getSheetDAO().getValue('Store', 'B2');
 }
@@ -2127,20 +2132,19 @@ function doBuildHierarchy(job) {
 var loaders;
 function getLoaders() {
   var cmDAO = new CampaignManagerDAO(getProfileId());
-  var sheetDAO = getSheetDAO();
   if(!loaders) {
     loaders = {
-      'Campaigns': new CampaignLoader(sheetDAO, cmDAO),
-      'AdvertiserLandingPages': new LandingPageLoader(sheetDAO, cmDAO),
-      'EventTags': new EventTagLoader(sheetDAO, cmDAO),
-      'Creatives': new CreativeLoader(sheetDAO, cmDAO),
-      'PlacementGroups': new PlacementGroupLoader(sheetDAO, cmDAO),
-      'Placements': new PlacementLoader(sheetDAO, cmDAO),
-      'Ads': new AdLoader(sheetDAO, cmDAO),
-      'PlacementPricingSchedule': new PricingScheduleLoader(sheetDAO, cmDAO),
-      'AdCreativeAssignment': new AdCreativeLoader(sheetDAO, cmDAO),
-      'AdPlacementAssignment': new AdPlacementLoader(sheetDAO, cmDAO),
-      'AdEventTagAssignment': new AdEventTagLoader(sheetDAO, cmDAO)
+      'Campaigns': new CampaignLoader(cmDAO),
+      'AdvertiserLandingPages': new LandingPageLoader(cmDAO),
+      'EventTags': new EventTagLoader(cmDAO),
+      'Creatives': new CreativeLoader(cmDAO),
+      'PlacementGroups': new PlacementGroupLoader(cmDAO),
+      'Placements': new PlacementLoader(cmDAO),
+      'Ads': new AdLoader(cmDAO),
+      'PlacementPricingSchedule': new PricingScheduleLoader(cmDAO),
+      'AdCreativeAssignment': new AdCreativeLoader(cmDAO),
+      'AdPlacementAssignment': new AdPlacementLoader(cmDAO),
+      'AdEventTagAssignment': new AdEventTagLoader(cmDAO)
     }
   }
 

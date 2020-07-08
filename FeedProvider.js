@@ -25,11 +25,8 @@
  *  be used in order of priority, i.e. if a list the first tab that exists will
  *  be used, this is helpful in case of falling back to a different tab, for
  *  instance the QA tab.
- *
- *  keys: list of strings with field names to be used as keys to uniquely
- *  identify a row of the feed
  */
-var FeedProvider = function(tab, keys) {
+var FeedProvider = function(tab) {
 
   var sheetDAO = getSheetDAO();
   var index = -1;
@@ -41,50 +38,47 @@ var FeedProvider = function(tab, keys) {
   }
 
   forEach(tab, function(index, value) {
-    if(sheetDAO.tabExists(value)) {
+    if(!tabName && sheetDAO.tabExists(value)) {
       tabName = value;
     }
   });
-
-  function generateKey(feedItem) {
-    if(!feedItem) {
-      return null;
-    }
-
-    var result = [];
-
-    forEach(keys, function(index, key) {
-      result.push(feedItem[key]);
-    });
-
-    return result.join('|');
-  }
 
   /**
    * Loads feed from the sheet
    */
   this.load = function() {
     if(tabName) {
-      this.setFeed(sheetDAO.feedToDict(tabName));
+      this.setFeed(sheetDAO.sheetToDict(tabName));
     }
+
+    return this;
+  }
+
+  /**
+   * Is the feed empty?
+   *
+   * returns: true if the feed is empty, false otherwise
+   */
+  this.isEmpty = function() {
+    return _feed && _feed.length > 0;
+  }
+
+  /**
+   * Resets the feedProvider to the first item in the feed
+   */
+  this.reset = function() {
+    index = -1;
+
+    return this;
   }
 
   /**
    * Sets a feed to this provider
    */
   this.setFeed = function(feed) {
-    index = -1;
+    _feed = feed;
 
-    _feed = {};
-
-    forEach(feed, function(index, feedItem) {
-      var key = generateKey(feedItem);
-      if(!_feed[key]) {
-        _feed[key] = [];
-      }
-
-      _feed[key].push(feedItem);
-    });
+    return this;
   }
 
   /**
@@ -95,12 +89,9 @@ var FeedProvider = function(tab, keys) {
   this.next = function() {
     if(_feed) {
       index++;
-      var keys = _feed.keys();
 
-      if(_feed && index < keys.length) {
-        // TODO: Find out a way to update the duplicate records so that changes are
-        // applied across the feed and not just to the first item
-        return _feed[keys[index][0]];
+      if(_feed && index < _feed.length) {
+        return _feed[index];
       }
     }
 
@@ -111,16 +102,12 @@ var FeedProvider = function(tab, keys) {
    * Writes feed back to the sheet
    */
   this.save = function() {
-    if(_feed) {
-      var rawFeed = [];
-
-      forEach(_feed.keys(), function(index, key) {
-        rawFeed = rawFeed.concat(_feed[key]);
-      });
-
+    if(_feed && tabName) {
       sheetDAO.clear(tabName, "A2:AZ");
-      sheetDAO.feedToDict(tabName, rawFeed);
+      sheetDAO.dictToSheet(tabName, _feed);
     }
+
+    return this;
   }
 
 }
