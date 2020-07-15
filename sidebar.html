@@ -422,15 +422,17 @@ function qaCMLoad() {
       google.script.run.goToTab('Log');
     });
 
-    return new Runner().run('clear', [{
-      'sheetName': 'QA',
-      'range': 'A2:AZ',
-      'run': true
-    }]).then(function(result) {
-      return new Runner().run('initializeJob', [{}]).then(function(result) {
-        console.log('Starting job: ' + result[0].jobId);
+    return new Runner().run('initializeJob', [{}]).then(function(result) {
+      console.log('Starting job: ' + result[0].jobId);
 
-        return identifyItemsToLoad();
+      return identifyItemsToLoad();
+    }).then(function(result) {
+      return new Runner().run('clear', [{
+        'sheetName': 'QA',
+        'range': 'A2:AZ',
+        'run': true
+      }]).then(function() {
+        return result;
       });
     }).then(function(jobs) {
       setStatus('Loading main entities from CM');
@@ -485,6 +487,7 @@ function qaCMLoad() {
 
       return new Runner().run('qa', [hierarchyJob]);
     }).then(function(jobs) {
+      // This causes the sidebar to crash due to the data volume from the hierarchy job
       //logger.log(jobs);
 
       var error = false;
@@ -610,7 +613,6 @@ function updateFeed(jobs) {
 
     feeds[job.entity].feed.push(job.feedItem);
   }
-
 
   new Runner().run('updateFeed', updateJobs);
 }

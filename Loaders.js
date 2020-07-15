@@ -304,7 +304,7 @@ var BaseLoader = function(cmDAO) {
   this.identifyItemsToLoad = function(job) {
     this.log(job, 'Identifying items to load: ' + this.label);
 
-    var feedProvider = new FeedProvider(this.tabName).load();
+    var feedProvider = new FeedProvider(this.tabName, this.keys).load();
 
     var idsToLoad = [];
     job.idsToLoad = idsToLoad;
@@ -312,10 +312,12 @@ var BaseLoader = function(cmDAO) {
 
     var item = null;
     while(item = feedProvider.next()) {
-      var idString = new String(item[this.idField]).trim().toLowerCase();
+      if(item[this.idField]) {
+        var idString = new String(item[this.idField]).trim().toLowerCase();
 
-      if (idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0) {
-        this.pushUnique(idsToLoad, item[this.idField]);
+        if(idString && idString != 'null' && idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0) {
+          this.pushUnique(idsToLoad, item[this.idField]);
+        }
       }
     }
   }
@@ -414,7 +416,7 @@ var BaseLoader = function(cmDAO) {
     }
 
     // Clear feed and write loaded items to the feed
-    var feedProvider = new FeedProvider(this.tabName).setFeed(feed).save();
+    var feedProvider = new FeedProvider(this.tabName, this.keys).setFeed(feed).save();
   }
 
   /**
@@ -427,7 +429,7 @@ var BaseLoader = function(cmDAO) {
    * sheet of the tab of this instance into the job.jobs field
    */
   this.createPushJobs = function(job) {
-    var feedProvider = new FeedProvider(this.tabName).load();
+    var feedProvider = new FeedProvider(this.tabName, this.keys).load();
     job.jobs = [];
 
     if(!feedProvider.isEmpty() && job.preFetchConfigs && job.preFetchConfigs.length > 0) {
@@ -602,7 +604,7 @@ var BaseLoader = function(cmDAO) {
    * returns: job
    */
   this.updateFeed = function(job) {
-    new FeedProvider(this.tabName).setFeed(job.feed).save();
+    new FeedProvider(this.tabName, this.keys).setFeed(job.feed).save();
 
     for(var i = 0; i < children.length; i++) {
       var childConfig = children[i];
@@ -630,9 +632,10 @@ var BaseLoader = function(cmDAO) {
 var CampaignLoader = function(cmDAO) {
   this.label = 'Campaign';
   this.entity = 'Campaigns';
-  this.tabName = 'Campaign';
+  this.tabName = ['Campaign', 'QA'];
   this.idField = fields.campaignId;
   this.listField = 'campaigns';
+  this.keys = ['Campaign ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -927,9 +930,10 @@ EventTagLoader.prototype = Object.create(BaseLoader.prototype);
 var PlacementGroupLoader = function(cmDAO) {
   this.label = 'Placement Group';
   this.entity = 'PlacementGroups';
-  this.tabName = 'Placement Group';
+  this.tabName = ['Placement Group', 'QA'];
   this.idField = fields.placementGroupId;
   this.listField = 'placementGroups';
+  this.keys = ['Package ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1283,7 +1287,6 @@ var PlacementLoader = function(cmDAO) {
    *    e.g.: 300x600, 800x160
    */
   function processSizes(placement, sizeText) {
-    console.log('processing sizes');
     var rawSizes = sizeText.split(',');
     var placementSizes = [];
 

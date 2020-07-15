@@ -93,15 +93,26 @@ function qaByCreativeRotation(job) {
 
     feedItem['Campaign Name'] = campaign.name;
     feedItem['Campaign ID'] = campaign.id;
+    feedItem['Advertiser ID'] = campaign.advertiserId;
+    feedItem['Campaign Start Date'] = campaign.startDate;
+    feedItem['Campaign End Date'] = campaign.endDate;
 
     if(placementGroup) {
-      feedItem['Package Name'] = placementGroup.name;
-      feedItem['Package ID'] = placementGroup.id;
+      feedItem['Placement Group Name'] = placementGroup.name;
+      feedItem['Placement Group ID'] = placementGroup.id;
+
+      feedItem['Site ID'] = placementGroup.siteId;
 
       if(placementGroup.pricingSchedule && placementGroup.pricingSchedule.pricingPeriods.length > 0) {
         feedItem['Rate'] = placementGroup.pricingSchedule.pricingPeriods[0].rateOrCostNanos / 1000000000;
         feedItem['Units'] = placementGroup.pricingSchedule.pricingPeriods[0].units;
       }
+
+      feedItem['Placement Group Type'] = placementGroup.placementGroupType;
+
+      feedItem['Placement Group Start Date'] = placementGroup.pricingSchedule.startDate;
+      feedItem['Placement Group End Date'] = placementGroup.pricingSchedule.endDate;
+      feedItem['Pricing Type'] = placementGroup.pricingSchedule.pricingType;
     }
 
     feedItem['Placement Name'] = placement.name;

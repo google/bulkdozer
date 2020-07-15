@@ -25,13 +25,22 @@
  *  be used in order of priority, i.e. if a list the first tab that exists will
  *  be used, this is helpful in case of falling back to a different tab, for
  *  instance the QA tab.
+ *
+ *  keys: string | list of strings: Name of the column or columns that should be
+ *  used to uniquely identify a row in the feed. This is used to dedup rows for
+ *  a given entity, which is useful when pushing data from the QA tab to CM. If
+ *  no key is defined, every row is returned and no deduping happens.
  */
-var FeedProvider = function(tab) {
+var FeedProvider = function(tab, keys) {
 
   var sheetDAO = getSheetDAO();
-  var index = -1;
+  var _index = -1;
   var _feed = null;
   var tabName = null;
+
+  if(keys && !Array.isArray(keys)) {
+    keys = [keys];
+  }
 
   if(!Array.isArray(tab)) {
     tab = [tab];
@@ -42,6 +51,62 @@ var FeedProvider = function(tab) {
       tabName = value;
     }
   });
+
+  /**
+   * Based on the key fields defined in the keys constructor parameter, returns
+   * the key for a given feed item.
+   *
+   * params:
+   *  feedItem: feed item to genetare the key for.
+   */
+  function generateKey(feedItem) {
+    var result = [];
+
+    forEach(keys, function(index, key) {
+      result.push(feedItem[key]);
+    });
+
+    return result.join('|');
+  }
+
+  /**
+   * Applies changes to all duplicated items and re-dups feed so it can be
+   * written back to the sheet
+   *
+   * returns: feed ready to be written back to the sheet
+   */
+  function applyChanges() {
+    var result = [];
+
+    if(!keys) {
+      return _feed;
+    } else {
+      forEach(_feed, function(index, feedItem) {
+        var original = feedItem._original;
+        var changes = {};
+
+        result.push(feedItem);
+
+        forEach(Object.getOwnPropertyNames(feedItem), function(index, propertyName) {
+          if(propertyName[0] != "_") {
+            if(original[propertyName] !== feedItem[propertyName]) {
+              changes[propertyName] = feedItem[propertyName];
+            }
+          }
+        });
+
+        forEach(feedItem._dups, function(index, dupFeedItem) {
+          forEach(Object.getOwnPropertyNames(changes), function(index, propertyName) {
+            dupFeedItem[propertyName] = changes[propertyName];
+          });
+
+          result.push(dupFeedItem);
+        });
+      });
+    }
+
+    return result;
+  }
 
   /**
    * Loads feed from the sheet
@@ -67,7 +132,7 @@ var FeedProvider = function(tab) {
    * Resets the feedProvider to the first item in the feed
    */
   this.reset = function() {
-    index = -1;
+    _index = -1;
 
     return this;
   }
@@ -76,7 +141,31 @@ var FeedProvider = function(tab) {
    * Sets a feed to this provider
    */
   this.setFeed = function(feed) {
-    _feed = feed;
+    if(!keys) {
+      _feed = feed;
+    } else {
+      _feed = [];
+      feedMap = {};
+
+      forEach(feed, function(index, feedItem) {
+        if(feedItem._deduped) {
+          _feed.push(feedItem);
+        } else {
+          var key = generateKey(feedItem);
+
+          feedItem._deduped = true;
+
+          if(feedMap[key]) {
+            feedMap[key]._dups.push(feedItem);
+          } else {
+            feedItem._original = JSON.parse(JSON.stringify(feedItem));
+            feedItem._dups = [];
+            feedMap[key] = feedItem;
+            _feed.push(feedItem);
+          }
+        }
+      });
+    }
 
     return this;
   }
@@ -88,10 +177,10 @@ var FeedProvider = function(tab) {
    */
   this.next = function() {
     if(_feed) {
-      index++;
+      _index++;
 
-      if(_feed && index < _feed.length) {
-        return _feed[index];
+      if(_feed && _index < _feed.length) {
+        return _feed[_index];
       }
     }
 
@@ -103,8 +192,10 @@ var FeedProvider = function(tab) {
    */
   this.save = function() {
     if(_feed && tabName) {
+      var rawFeed = applyChanges();
       sheetDAO.clear(tabName, "A2:AZ");
-      sheetDAO.dictToSheet(tabName, _feed);
+      sheetDAO.dictToSheet(tabName, rawFeed);
+      this.setFeed(rawFeed);
     }
 
     return this;
