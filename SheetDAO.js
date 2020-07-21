@@ -299,6 +299,10 @@ var SheetDAO = function() {
    *  noCache: boolean, if true the cache isn't used, otherwise cache is used
    */
   this.sheetToDict = function(sheetName, noCache) {
+    if(!this.tabExists(sheetName)) {
+      return [];
+    }
+
     var result = noCache ? null : cacheGet(sheetName, 'dict');
 
     if(!result) {

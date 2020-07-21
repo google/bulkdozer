@@ -58,6 +58,21 @@ var BaseLoader = function(cmDAO) {
   var references = [];
   var children = [];
 
+  function whichTab(tabs) {
+    tabs = Array.isArray(tabs) ? tabs : [tabs];
+    var result = null;
+
+    forEach(tabs, function(index, value) {
+      if(!result && sheetDAO.tabExists(value)) {
+        result = value;
+      }
+    });
+
+    return result;
+  }
+
+  this.tabName = whichTab(this.tabName);
+
   /**
    * Maps child relationships defined in the children intenrnal field
    * by injecting a list of children in the feedItem.
@@ -68,6 +83,7 @@ var BaseLoader = function(cmDAO) {
   function mapChildRelationships(feedItem) {
     for(var i = 0; i < children.length; i++) {
       var childConfig = children[i];
+
       var childMap = {};
 
       var feedProvider = new FeedProvider(childConfig.tabName).load();
@@ -506,6 +522,8 @@ var BaseLoader = function(cmDAO) {
    *  the parent (akin to a foreign key).
    */
   this.addChildRelationship = function(childTabName, childListName, childRelationshipField) {
+    childTabName = whichTab(childTabName);
+
     children.push({
       'tabName': childTabName,
       'listName': childListName,
@@ -526,6 +544,8 @@ var BaseLoader = function(cmDAO) {
   this.translateId = function(tabName, feedItem, fieldName) {
     var idValue = feedItem[fieldName];
     var translatedId = null;
+
+    tabName = whichTab([tabName, 'QA']);
 
     if(String(idValue).indexOf('ext') == 0) {
       translatedId = getIdStore().translate(tabName, idValue);
@@ -712,9 +732,10 @@ CampaignLoader.prototype = Object.create(BaseLoader.prototype);
 var LandingPageLoader = function(cmDAO) {
   this.label = 'Landing Page';
   this.entity = 'AdvertiserLandingPages';
-  this.tabName = 'Landing Page';
+  this.tabName = ['Landing Page', 'QA'];
   this.idField = fields.landingPageId;
   this.listField = 'landingPages';
+  this.keys = ['Landing Page ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -933,7 +954,7 @@ var PlacementGroupLoader = function(cmDAO) {
   this.tabName = ['Placement Group', 'QA'];
   this.idField = fields.placementGroupId;
   this.listField = 'placementGroups';
-  this.keys = ['Package ID'];
+  this.keys = ['Placement Group ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1023,9 +1044,10 @@ var PlacementLoader = function(cmDAO) {
   var that = this;
   this.label = 'Placement';
   this.entity = 'Placements';
-  this.tabName = 'Placement';
+  this.tabName = ['Placement', 'QA'];
   this.idField = fields.placementId;
   this.listField = 'placements';
+  this.keys = ['Placement ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1154,7 +1176,7 @@ var PlacementLoader = function(cmDAO) {
   function processActiveViewAndVerification(job) {
     var feedItem = job.feedItem;
     var placement = job.cmObject;
-    var activeView = feedItem[fields.activeView];
+    var activeView = feedItem[fields.activeView] || '';
 
     if(activeView === 'ON') {
       placement['vpaidAdapterChoice'] = 'HTML5';
@@ -1417,9 +1439,10 @@ PlacementLoader.prototype = Object.create(BaseLoader.prototype);
 var CreativeLoader = function(cmDAO) {
   this.label = 'Creative';
   this.entity = 'Creatives';
-  this.tabName = 'Creative';
+  this.tabName = ['Creative', 'QA'];
   this.idField = fields.creativeId;
   this.listField = 'creatives';
+  this.keys = ['Creative ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1527,15 +1550,16 @@ var AdLoader = function(cmDAO) {
   that = this;
   this.label = 'Ad';
   this.entity = 'Ads';
-  this.tabName = 'Ad';
+  this.tabName = ['Ad', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
+  this.keys = ['Ad ID'];
 
   BaseLoader.call(this, cmDAO);
 
   this.addReference('Campaign', fields.campaignId);
-  this.addChildRelationship('Ad Placement Assignment', 'placementAssignments', fields.adId);
-  this.addChildRelationship('Ad Creative Assignment', 'creativeAssignments', fields.adId);
+  this.addChildRelationship(['Ad Placement Assignment', 'QA'], 'placementAssignments', fields.adId);
+  this.addChildRelationship(['Ad Creative Assignment', 'QA'], 'creativeAssignments', fields.adId);
   this.addChildRelationship('Event Tag Ad Assignment', 'eventTagAssignments', fields.adId);
 
   /**
@@ -1610,37 +1634,40 @@ var AdLoader = function(cmDAO) {
       for(var i = 0; i < feedItem.creativeAssignments.length; i++) {
         var assignmentFeed = feedItem.creativeAssignments[i];
 
-        assignmentFeed[fields.adCreativeAssignmentStartDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentStartDate);
-        assignmentFeed[fields.adCreativeAssignmentEndDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentEndDate);
+        if(assignmentFeed[fields.creativeId]) {
 
-        var assignment = {
-          'active': true,
-          'creativeId': assignmentFeed[fields.creativeId],
-          'startTime': assignmentFeed[fields.adCreativeAssignmentStartDate],
-          'endTime': assignmentFeed[fields.adCreativeAssignmentEndDate]
+          assignmentFeed[fields.adCreativeAssignmentStartDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentStartDate);
+          assignmentFeed[fields.adCreativeAssignmentEndDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentEndDate);
+
+          var assignment = {
+            'active': true,
+            'creativeId': assignmentFeed[fields.creativeId],
+            'startTime': assignmentFeed[fields.adCreativeAssignmentStartDate],
+            'endTime': assignmentFeed[fields.adCreativeAssignmentEndDate]
+          }
+
+          if(assignmentFeed[fields.creativeRotationWeight]) {
+            assignment.weight = assignmentFeed[fields.creativeRotationWeight];
+          }
+
+          if(assignmentFeed[fields.creativeRotationSequence]) {
+            assignment.sequence = assignmentFeed[fields.creativeRotationSequence];
+          }
+
+          assignment.clickThroughUrl = {};
+          if(!assignmentFeed[fields.landingPageId] && !assignmentFeed[fields.customClickThroughUrl]) {
+            assignment.clickThroughUrl.defaultLandingPage = true;
+          } else if(assignmentFeed[fields.landingPageId]) {
+            assignmentFeed[fields.landingPageId] = that.translateId('Landing Page', assignmentFeed, fields.landingPageId);
+            assignment.clickThroughUrl.defaultLandingPage = false;
+            assignment.clickThroughUrl.landingPageId = assignmentFeed[fields.landingPageId];
+          } else if(assignmentFeed[fields.customClickThroughUrl]) {
+            assignment.clickThroughUrl.defaultLandingPage = false;
+            assignment.clickThroughUrl.customClickThroughUrl = assignmentFeed[fields.customClickThroughUrl];
+          }
+
+          creativeAssignments.push(assignment);
         }
-
-        if(assignmentFeed[fields.creativeRotationWeight]) {
-          assignment.weight = assignmentFeed[fields.creativeRotationWeight];
-        }
-
-        if(assignmentFeed[fields.creativeRotationSequence]) {
-          assignment.sequence = assignmentFeed[fields.creativeRotationSequence];
-        }
-
-        assignment.clickThroughUrl = {};
-        if(!assignmentFeed[fields.landingPageId] && !assignmentFeed[fields.customClickThroughUrl]) {
-          assignment.clickThroughUrl.defaultLandingPage = true;
-        } else if(assignmentFeed[fields.landingPageId]) {
-          assignmentFeed[fields.landingPageId] = that.translateId('Landing Page', assignmentFeed, fields.landingPageId);
-          assignment.clickThroughUrl.defaultLandingPage = false;
-          assignment.clickThroughUrl.landingPageId = assignmentFeed[fields.landingPageId];
-        } else if(assignmentFeed[fields.customClickThroughUrl]) {
-          assignment.clickThroughUrl.defaultLandingPage = false;
-          assignment.clickThroughUrl.customClickThroughUrl = assignmentFeed[fields.customClickThroughUrl];
-        }
-
-        creativeAssignments.push(assignment);
       }
 
       ad.creativeRotation.creativeAssignments = creativeAssignments;
@@ -1657,14 +1684,17 @@ var AdLoader = function(cmDAO) {
       for(var i = 0; i < feedItem.placementAssignments.length; i++) {
         var placementAssignment = feedItem.placementAssignments[i];
 
-        var placement = cmDAO.get('Placements', that.translateId('Placement', placementAssignment, fields.placementId));
+        if(placementAssignment[fields.placementId]) {
 
-        placementAssignment[fields.placementId] = placement.id;
+          var placement = cmDAO.get('Placements', that.translateId('Placement', placementAssignment, fields.placementId));
 
-        placementAssignments.push({
-          'active': true,
-          'placementId': placement.id
-        });
+          placementAssignment[fields.placementId] = placement.id;
+
+          placementAssignments.push({
+            'active': true,
+            'placementId': placement.id
+          });
+        }
       }
 
       ad.placementAssignments = placementAssignments;
@@ -1844,9 +1874,10 @@ AdLoader.prototype = Object.create(BaseLoader.prototype);
 var AdPlacementLoader = function(cmDAO) {
   this.label = 'Ad Placement Assignment';
   this.entity = 'Ads';
-  this.tabName = 'Ad Placement Assignment';
+  this.tabName = ['Ad Placement Assignment', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
+  this.keys = ['Ad ID', 'Placement ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1883,9 +1914,10 @@ AdPlacementLoader.prototype = Object.create(BaseLoader.prototype);
 var AdCreativeLoader = function(cmDAO) {
   this.label = 'Ad Creative Assignment';
   this.entity = 'Ads';
-  this.tabName = 'Ad Creative Assignment';
+  this.tabName = ['Ad Creative Assignment', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
+  this.keys = ['Ad ID', 'Creative ID'];
 
   BaseLoader.call(this, cmDAO);
 

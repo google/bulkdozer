@@ -57,9 +57,13 @@ function forEachAdCreativeAssignment(hierarchy, func) {
     forEach(campaign.placementGroups, function(index, placementGroup) {
       forEach(placementGroup.placements, function(index, placement) {
         forEach(placement.ads, function(index, ad) {
-          forEach(ad.creatives, function(index, creative) {
-            func(campaign, placementGroup, placement, ad, creative);
-          });
+          if(ad.creatives && ad.creatives.length > 0) {
+            forEach(ad.creatives, function(index, creative) {
+              func(campaign, placementGroup, placement, ad, creative);
+            });
+          } else {
+            func(campaign, placementGroup, placement, ad);
+          }
         });
       });
     });
@@ -120,7 +124,8 @@ function qaByCreativeRotation(job) {
     feedItem['Placement Start Date'] = placement.pricingSchedule.startDate;
     feedItem['Placement End Date'] = placement.pricingSchedule.endDate;
     feedItem['Ad Blocking'] = placement.adBlockingOptOut;
-    feedItem['Cost Structure'] = placement.pricingSchedule.pricingType;
+    feedItem['Pricing Schedule Cost Structure'] = placement.pricingSchedule.pricingType;
+    feedItem['Type'] = placement.compatibility;
 
     feedItem['Ad Name'] = ad.name;
     feedItem['Ad ID'] = ad.id;
@@ -128,6 +133,10 @@ function qaByCreativeRotation(job) {
     feedItem['Asset Size'] = ad.size ? ad.size.width + 'x' + ad.size.height : '';
     feedItem['Ad Start Date'] = ad.startTime;
     feedItem['Ad End Date'] = ad.endTime;
+    if(ad.deliverySchedule) {
+      feedItem['Ad Priority'] = ad.deliverySchedule.priority;
+    }
+
     if(ad.targetingTemplateId) {
       var targetingTemplate = cmDAO.get('TargetingTemplates', ad.targetingTemplateId);
 
@@ -138,16 +147,18 @@ function qaByCreativeRotation(job) {
     }
     feedItem['Hard Cutoff'] = ad.deliverySchedule ? ad.deliverySchedule.hardCutoff : '';
 
-    feedItem['Creative Name'] = creative.creative.name;
-    feedItem['Creative ID'] = creative.creative.id;
-    feedItem['Creative Size'] = creative.size ? creative.size.width + 'x' + creative.size.height : '';
-    feedItem['Creative Rotation Weight'] = creative.weight;
-    feedItem['Creative Start Date'] = creative.startTime;
-    feedItem['Creative End Date'] = creative.endTime;
-    if(creative.landingPage) {
-      feedItem['Landing Page Name'] = creative.landingPage.name
-      feedItem['Landing Page'] = creative.landingPage.url;
-      feedItem['Landing Page ID'] = creative.landingPage.id;
+    if(creative) {
+      feedItem['Creative Name'] = creative.creative.name;
+      feedItem['Creative ID'] = creative.creative.id;
+      feedItem['Creative Size'] = creative.size ? creative.size.width + 'x' + creative.size.height : '';
+      feedItem['Creative Rotation Weight'] = creative.weight;
+      feedItem['Creative Start Date'] = creative.startTime;
+      feedItem['Creative End Date'] = creative.endTime;
+      if(creative.landingPage) {
+        feedItem['Landing Page Name'] = creative.landingPage.name
+        feedItem['Landing Page URL'] = creative.landingPage.url;
+        feedItem['Landing Page ID'] = creative.landingPage.id;
+      }
     }
 
     feed.push(feedItem);

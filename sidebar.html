@@ -494,7 +494,7 @@ function qaCMLoad() {
 
       forEach(jobs, function(index, job) {
         if(job.error) {
-          setStatus(job.error);
+          setStatus(JSON.stringify(job.error));
           error = true;
         }
       });

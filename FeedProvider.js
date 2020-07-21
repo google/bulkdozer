@@ -31,26 +31,15 @@
  *  a given entity, which is useful when pushing data from the QA tab to CM. If
  *  no key is defined, every row is returned and no deduping happens.
  */
-var FeedProvider = function(tab, keys) {
+var FeedProvider = function(tabName, keys) {
 
   var sheetDAO = getSheetDAO();
   var _index = -1;
   var _feed = null;
-  var tabName = null;
 
   if(keys && !Array.isArray(keys)) {
     keys = [keys];
   }
-
-  if(!Array.isArray(tab)) {
-    tab = [tab];
-  }
-
-  forEach(tab, function(index, value) {
-    if(!tabName && sheetDAO.tabExists(value)) {
-      tabName = value;
-    }
-  });
 
   /**
    * Based on the key fields defined in the keys constructor parameter, returns
