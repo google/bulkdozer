@@ -614,7 +614,7 @@ function updateFeed(jobs) {
     feeds[job.entity].feed.push(job.feedItem);
   }
 
-  new Runner().run('updateFeed', updateJobs);
+  return new Runner().run('updateFeed', updateJobs);
 }
 
 /**
@@ -643,16 +643,17 @@ function saveIdMap(idMap) {
  * returns: the updated list of jobs
  */
 function postProcessEntityPush(jobs) {
-  updateFeed(jobs);
+  return updateFeed(jobs).then(function(result) {
+    var idMap = mergeIdMaps(jobs);
 
-  var idMap = mergeIdMaps(jobs);
+    saveIdMap(idMap);
 
-  saveIdMap(idMap);
+    flushLogs();
 
-  flushLogs();
+    return new Promise(function(resolve, reject) {
+      resolve(idMap);
+    });
 
-  return new Promise(function(resolve, reject) {
-    resolve(idMap);
   });
 }
 
@@ -739,16 +740,22 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
   if(index < jobs.length) {
     var job = jobs[index];
 
-    if(jobsMap[job['entity']].jobs.length > 0) {
-      return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap), writeLogs).then(function(executedJobs) {
-        jobsMap[job['entity']] = executedJobs;
-        return postProcessEntityPush(executedJobs);
-      }).then(function(idMap) {
-        return orchestratePush(jobs, idMap, jobsMap, index + 1);
-      });
-    } else {
+    return new Runner().run('createPushJobs', [job]).then(function(pushJobs) {
+      jobsMap[job['entity']].jobs = pushJobs[0].jobs;
+
+      if(jobsMap[job['entity']].jobs.length > 0) {
+        return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap), writeLogs).then(function(executedJobs) {
+          jobsMap[job['entity']].jobs = executedJobs;
+          return postProcessEntityPush(executedJobs);
+        });
+      } else {
+        return new Promise(function(resolve, reject) {
+          resolve(idMap);
+        });
+      }
+    }).then(function(idMap) {
       return orchestratePush(jobs, idMap, jobsMap, index + 1);
-    }
+    });
   }
 
   return new Promise(function(resolve, reject) {
@@ -926,11 +933,9 @@ function pushToCM() {
         }
       ];
 
-      return new Runner().run('createPushJobs', jobs).then(function(pushJobs) {
-        var jobsMap = getJobsMap(pushJobs);
+      var jobsMap = getJobsMap(jobs);
 
-        return orchestratePush(pushJobs, idMap[0].idMap, jobsMap, 0);
-      });
+      return orchestratePush(jobs, idMap[0].idMap, jobsMap, 0);
     }).then(function(jobs) {
       toggleEnabledButtons();
 
