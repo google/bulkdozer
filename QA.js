@@ -117,6 +117,8 @@ function qaByCreativeRotation(job) {
       feedItem['Placement Group Start Date'] = placementGroup.pricingSchedule.startDate;
       feedItem['Placement Group End Date'] = placementGroup.pricingSchedule.endDate;
       feedItem['Pricing Type'] = placementGroup.pricingSchedule.pricingType;
+    } else {
+      feedItem['Site ID'] = placement.siteId;
     }
 
     feedItem['Placement Name'] = placement.name;

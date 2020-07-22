@@ -52,7 +52,9 @@ var FeedProvider = function(tabName, keys) {
     var result = [];
 
     forEach(keys, function(index, key) {
-      result.push(feedItem[key]);
+      if(feedItem[key]) {
+        result.push(feedItem[key]);
+      }
     });
 
     return result.join('|');
@@ -168,7 +170,11 @@ var FeedProvider = function(tabName, keys) {
     if(_feed) {
       _index++;
 
-      if(_feed && _index < _feed.length) {
+      if(keys) {
+        for(;_index < _feed.length && !generateKey(_feed[_index]); _index++);
+      }
+
+      if(_index < _feed.length) {
         return _feed[_index];
       }
     }
