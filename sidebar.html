@@ -741,10 +741,14 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
     var job = jobs[index];
 
     return new Runner().run('createPushJobs', [job]).then(function(pushJobs) {
+      console.log("push jobs:");
+      console.log(pushJobs);
       jobsMap[job['entity']].jobs = pushJobs[0].jobs;
 
       if(jobsMap[job['entity']].jobs.length > 0) {
         return new Runner().run('cmPush', preparePushJob(jobsMap, job['entity'], idMap), writeLogs).then(function(executedJobs) {
+          console.log("executed jobs:");
+          console.log(executedJobs);
           jobsMap[job['entity']].jobs = executedJobs;
           return postProcessEntityPush(executedJobs);
         });

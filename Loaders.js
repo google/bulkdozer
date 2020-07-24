@@ -458,7 +458,7 @@ var BaseLoader = function(cmDAO) {
 
     feedProvider.reset();
     var feedItem = null;
-    while(feedItem = feedProvider.next()) {
+    while(feedItem = feedProvider.next(true)) {
       var pushJob = {
         'entity': job.entity,
         'feedItem': feedItem
@@ -563,6 +563,11 @@ var BaseLoader = function(cmDAO) {
    *  as new ids
    */
   this.push = function(job) {
+    if(job.feedItem.unkeyed) {
+      this.log(job, this.idField + ' is empty for ' + this.label + '. Skipping');
+      return;
+    }
+
     var idValue = job.feedItem[this.idField];
 
     try {

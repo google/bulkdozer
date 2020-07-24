@@ -142,9 +142,13 @@ var FeedProvider = function(tabName, keys) {
         if(feedItem._deduped) {
           _feed.push(feedItem);
         } else {
-          var key = generateKey(feedItem);
+          var key = generateKey(feedItem) || 'unkeyed';
 
           feedItem._deduped = true;
+
+          if(key === 'unkeyed') {
+            feedItem.unkeyed = true;
+          }
 
           if(feedMap[key]) {
             feedMap[key]._dups.push(feedItem);
@@ -158,6 +162,8 @@ var FeedProvider = function(tabName, keys) {
       });
     }
 
+    console.log('this is the feed that was set:');
+    console.log(_feed.length);
     return this;
   }
 
@@ -170,9 +176,11 @@ var FeedProvider = function(tabName, keys) {
     if(_feed) {
       _index++;
 
+      /*
       if(keys) {
         for(;_index < _feed.length && !generateKey(_feed[_index]); _index++);
       }
+      */
 
       if(_index < _feed.length) {
         return _feed[_index];
