@@ -1,141 +1,158 @@
-# Floodlight Audit Tool
+<a name="top_page"></a>
 
-The Floodlight Audit tool is a chrome extension that crawls a website and
-generates a floodlight tag report by monitoring network traffic from the page.
+# Bulkdozer Lite
 
-In this document, we will be outlining the installation, base functionality,
-features and way to use the floodlight audit tool that may come up in most use
-cases.
+-   [Introduction](#introduction) <br/>
+-   [Quickstart](#quickstart) <br/>
+-   [Terms and Conditions](#terms_and_conditions) <br/>
+-   [Support](#support) <br/>
 
-This is not an officially supported Google product.
+<a name="introduction"></a>
 
-## License
+## Introduction
 
-Copyright 2017 Google LLC
+Bulkdozer Lite is a simplified version of [Bulkdozer](https://github.com/google/starthinker/issues) that significantly
+streamlines the deployment process of the tool. The main Bulkdozer version
+requires a Google Cloud Project and an installation of the StarThinker tool to
+perform updates in CM, Bulkdozer Lite on the other hand is fully self contained
+in a Google Sheet, you simply make a copy of the sheet and you are ready to
+start using it.
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at
+Bulkdozer Lite lacks some of the features of the main version of Bulkdozer, such
+as event tag profiles, transcode configurations, asset upload, and advanced
+display features to name a few. Also since Bulkdozer Lite runs on an environment
+that is much more constrained than the main version, restrictions on memory and
+execution time mean that only a couple of thousand items can be updated in a
+single operation. Lite is also 20 to 30% slower than the main version depending
+on the operation being performed.
 
-http://www.apache.org/licenses/LICENSE-2.0
+Despite these restrictions, Bulkdozer Lite is a great way for users to start
+experimenting with the tool, understand how it works, and gauge how it can
+positively impact their organizations without commiting engineering resources or
+requiring a Google Cloud Platform contract.
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
+Note that Bulkdozer Lite is provided with the same terms and conditions as the
+main Bulkdozer version, and by using any of its functionality you agree with
+these terms, please see below.
 
-Note that these code samples being shared are not official Google products and
-are not formally supported.
+[Back to top](#top_page)
 
-## Installation
+<a name="quickstart"></a>
 
-1.  Download/pull the source code to a local directory of your choosing.
-2.  Rename the manifest.json.template file at the root directory of the code to
-    manifest.json.
-3.  Open a chrome browser window, navigate the extensions management page by
-    browsing to: chrome://extensions/
-4.  On the top right of the page flip the "Developer Mode" switch to on.
-5.  At the top of the page, on the left, click the “Load Unpacked Extension ...”
-    button
-6.  Select the “floodlight-audit” folder created when you downloaded the source
-    code.
-7.  The tool should now be installed, and a new icon should show in the
-    extensions toolbar on the top right corner of chrome.
-8.  Finally click the icon in the extension toolbar to open the tool.
+## Quickstart
 
-If the extension doesn't work due to chrome extensions restrictions in your
-organization you may be need to generate a key, follow instructions here: https://developer.chrome.com/apps/manifest/key
+In this section we will explore the basic functionality of Bulkdozer Lite and
+how to use it. This is not intended as a full re-write of the [guides for the
+main Bulkdozer version](https://github.com/google/starthinker/blob/master/tutorials/Bulkdozer/Installation_and_User_guides.md) which are still broadly applicable to Lite. The goal here
+is to show you how to operate Lite so you can go through the main version's
+tutorials using this version.
 
-Add a new "key" field in manifest.json and set the value to your key.
+[Back to top](#top_page)
 
-## User Interface
+### The Bulkdozer Lite Sidebar
 
-In this section we are going to outline the functionality of each element within
-the Control panel.
+The Bulkdzoer Lite sidebar is where you access all Bulkdozer Lite functionality.
+To open the sidebar select the custom menu Bulkdozer -> Open.
 
-1.  *Domain* - Displays the top level domain for the website in the tab the tool
-    was open in. Used to verify that scraped on each page by the tool fall
-    within the same domain.
+Status: The "Status" text tells you what Bulkdozer is currently doing. "Ready"
+means it is not executing any jobs and it is ready to process your next command.
+When jobs are running, this status text changes to reflect the actions that are
+being performed.
 
-2.  *ProfileID* (optional) - Represents the user’s Campaign Manager(CM) Profile
-    ID. This field is optional as it is not needed to run the audit. If filled
-    out (along with CM Account ID) when floodlights are captured by the tool, a
-    link will be created for each entry that will take the user to the CM page
-    for that floodlight.
+Clear Feed: This button will clear CM data from all tabs in the feed, preparing
+it for the next activity, such as switching to work on a new campaign.
 
-3.  *CM Account ID* (optional) - Represents the Campaign Manager network account
-    ID. Similarly to ProfileID, this field is optional as it is not needed to
-    run the audit and if filled out with Profile ID it will allow the tool to
-    generate a link to the floodlight within the CM UI.
+Load from CM: This button will load data from CM, which data to load is
+identified by the IDs in the ID columns of the respective tabs. For instance, if
+you would like to load all entities under a given Campaign, enter the Campaign
+ID in the Campaign ID column of the Campaign tab and click Load from CM.
 
-4.  *Floodlight Configuration ID* (optional) - This field can be filled out with
-    (1 or more) comma separated floodlight configuration IDs on which to filter
-    the audit run on a site. Only floodlights IDs present in this field will be
-    recorded during the audit. This helps scope down the audit to specific
-    floodlights that a user may want to test. If empty then all floodlights will
-    be recorded.
+Push to CM: This button will push changes done to the feed back to CM.
 
-5.  *URL Suffix* (optional) - Any value added to this field will be appended to
-    every URL visited by the extension.
+[Back to top](#top_page)
 
-6.  *Enable Manual Mode* - (defaults to off) If checked, the tool will run the
-    audit in manual mode meaning that it will not automatically visit and scrape
-    web pages. Instead it will sit back passively and record any floodlight
-    light activity as the user navigates through the website. Allows a user to
-    audit particular pages, simulate a customer actions that would fire flood
-    lights which a page visit may not (button click, sign up, etc...) or
-    potentially audit a mock transaction.
+### Clearing the Feed
 
-6.  *Enable Global Site Tag Verification* - (defaults to off) If checked, it
-    will enable the feature to capture Global Site Tag and cookie information on
-    each visited page (compatible with manual and default automatic mode) which
-    will be displayed in a separate table similar to the floodlight table.
+Clearing the feed will erase any data from the tabs that contain CM data, it is
+done through the Clear Feed button on the sidebar.
 
-7.  *Reset Global Site Tag Per Webpage* - (defaults to off) If checked, this
-    will tack on the gclid and gclsrc to each url visited in the audit to make
-    sure the Global Site Tag (GST) and cookies can be set proper regardless of
-    the entry point on the site. Default tool behavior will only set these
-    values on the base page of the audit and test the propagation of the GST and
-    cookies across the site.
+This is an essential step to ensure there is no left over data in the feed which
+could cause inadverted changes to CM.
 
-8.  *Show Page with No Floodlights* - (defaults to off) If checked, tells the
-    tool to add an entry in the floodlight audit table for web pages that were
-    visited and where no floodlight activity was captured. If this feature is
-    not activated, by default the tool will only record floodlight activity on
-    pages where it occurred, leaving out pages with no floodlight activity.
+Always clear the feed whenever you start working on a new / different campaign,
+and whenever the process of pushing or loading from CM is aborted either by the
+user or by an unhandled error.
 
-9.  *Run Button* - Will trigger the audit process once it is clicked. After the
-    first click, will be replaced by a Stop button which will terminate the
-    audit.
+[Back to top](#top_page)
 
-10. *Download Button* - Allows the user to download the audit results as a csv
-    file matching the information displayed in the UI. It will download
-    Floodlight results and Global Site Tag (if enabled by user) results as
-    separate CSV files. Can be clicked at any point during the audit process.
+### Loading from CM
 
-## How to Use It
+Bulkdozer Lite loads data from CM based on IDs you input in the respective tabs.
+You can load entire campaigns or specific Placement Groups, Placements, and Ads.
+Bulkdozer will load items in "cascade", e.g. if you decide to load campaigns
+everything under the specified campaigns will be loaded. If you decide to load
+Placements, everything under the placements will be loaded but not upstream
+items such as campaigns and placement groups. This behavior is intended to allow
+you to load only specific items you want to modify.
 
-1.  Navigate to the page from which you want to start, usually the websites home
-    page;
-2.  Open the tool by clicking the icon from the chrome toolbar;
-3.  The Domain is pre-populated based on the domain on the page from which you
-    started, you can change it to narrow down the pages that should be crawled;
-4.  (OPTIONAL) Check “Enable Manual Mode” you wish to run the audit in manual
-    mode. If checked you as the user will need to navigate through the website
-    manually.
-5.  (OPTIONAL) Check “Enable Global Site Tag Verification” to enable and record
-    GST and cookie data during the audit.
-6.  (OPTIONAL) Check “Reset Global Site Tag Per Page” if you wish for cookie
-    values to be cleared after each page visit and for the gclid and gclsrc
-    values to be appended to each webpage.
-7.  (OPTIONAL) Check the “Show Pages with No Floodlight” in case you want the
-    report to include pages that are visited but do not cause floodlight tags to
-    be fired. This is particularly useful if you want to determine pages that
-    are not being tracked.
-8.  Click the Run button, and wait as the crawler starts to visit your site.
-    Note, keep the tool popup open, if you close it by clicking anywhere on
-    Chrome the process will stop, and you will only get a partial report.
-9.  Once the crawling is over and the number of pages visited is the same as the
-    number of pages found then the audit will be marked as completed. At this
-    point you can click the Download button to export a CSV version of the final
-    Floodlight and Global Site Tag report (if enabled).
+The first step is to clear the feed to ensure only the data you specify will be
+loaded.
+
+Next go to the tab that represents the top level entities you want to load. E.g.
+if you want to load an entire campaign go to the Campaign Tab, if you want to
+load specific placements go to the Placement tab.
+
+In the selected tab enter the IDs of the items you'd like to loadd in the ID
+column. For instance, if you are loading Campaigns, enter campaign IDs in the
+Campaign ID column, if you are loading placement groups enter placement group
+ids in the Placement Group column. You can also mix and match, for instance you
+could load 1 entire campaign, 3 placement groups from another campaign, and 2
+placements from yet another placement group by specifying the correct ids in the
+correct tabs.
+
+Finally open the sidebar and click "Load from CM". Monitor the Log tab until the
+sidebar status changes to "Ready", which indicates the loading process is
+complete and CM data is populated in the respective tabs.
+
+[Back to top](#top_page)
+
+### Pushing to CM
+
+After building a campaign from scratch in the feed or loading and making
+changes, you are ready to push back to CM.
+
+Open the sidebar and click "Push to CM". Monitor the Log tab until the Status of
+the sidebar changes to "Ready". This indicates the push is complete.
+
+The Log tab will indicate any errors that happened during the push due to
+misconfigurations, e.g. an end date that is earlier than a start date, a wrong
+creative ID, an active ad that is not assigned to placements, incompatible
+placement and creative types, etc. These errors can be fixed in the tabs and
+another push executed.
+
+If an unhandled error happens during the execution of a push such as quota
+limits, API errors, memory usage exceeded etc., the Status field will not change
+to "Ready", and the last entry in the Log tab will not be "Done", in this case
+the feed is in an inconsistent state and you must reset the feed and start over
+to avoid pushing misconfigured data causing potentially unintentional changes to
+Campaign Manager.
+
+[Back to top](#top_page)
+
+# Terms and Conditions
+
+By using Bulkdozer the user agrees with the
+[Terms & Conditions](Terms_and_Conditions.md).
+
+[Back to top](#top_page)
+
+<a name="support"></a>
+
+## Support
+
+Bulkdozer is community supported, if you have any issues or questions please post a new issue [here](https://github.com/google/bulkdozer-lite/issues)
+
+Sign up for updates and announcements:
+[Bulkdozer Announcements](https://groups.google.com/forum/#!forum/bulkdozer-announcements)
+
+[Back to top](#top_page)
