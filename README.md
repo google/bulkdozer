@@ -11,7 +11,8 @@
 
 ## Introduction
 
-Bulkdozer Lite is a simplified version of [Bulkdozer](https://github.com/google/starthinker/issues) that significantly
+Bulkdozer Lite is a simplified version of
+[Bulkdozer](https://github.com/google/starthinker/blob/master/tutorials/Bulkdozer/Installation_and_User_guides.md) that significantly
 streamlines the deployment process of the tool. The main Bulkdozer version
 requires a Google Cloud Project and an installation of the StarThinker tool to
 perform updates in CM, Bulkdozer Lite on the other hand is fully self contained
