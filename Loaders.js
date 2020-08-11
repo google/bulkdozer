@@ -138,7 +138,7 @@ var BaseLoader = function(cmDAO) {
    */
   this.isTrue = function(value) {
     if(typeof(value) === 'string') {
-      return value === 'true';
+      return value.toLowerCase() === 'true';
     } else {
       return value === true ;
     }
@@ -1793,7 +1793,9 @@ var AdLoader = function(cmDAO) {
     var ad = job.cmObject;
 
     // Handle base fields
-    ad.active = this.isTrue(feedItem[fields.adActive]);
+    if(feedItem.hasOwnProperty(fields.adActive)) {
+      ad.active = this.isTrue(feedItem[fields.adActive]);
+    }
     ad.campaignId = feedItem[fields.campaignId];
     ad.archived = this.isTrue(feedItem[fields.adArchived]);
     ad.startTime = feedItem[fields.adStartDate];
