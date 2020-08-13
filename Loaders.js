@@ -48,6 +48,26 @@ var DataUtils = function() {
       }
     }
   }
+
+  this.formatDateTime = function(value) {
+    if(typeof(value) == 'string') {
+      return Utilities.formatDate(new Date(value), 'GMT', "yyyy-MM-dd'T'HH:mm:ssZ");
+    } else if(value) {
+      return Utilities.formatDate(value, SpreadsheetApp.getActive().getSpreadsheetTimeZone(),  "yyyy-MM-dd'T'HH:mm:ssZ");
+    } else {
+      return ''
+    }
+  }
+
+  this.formatDate = function(value) {
+    if(typeof(value) == 'string') {
+      return Utilities.formatDate(new Date(value), 'GMT', 'yyyy-MM-dd');
+    } else if(value) {
+      return Utilities.formatDate(value, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    } else {
+      return ''
+    }
+  }
 }
 var dataUtils = new DataUtils();
 

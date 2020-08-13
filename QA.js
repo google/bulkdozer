@@ -194,6 +194,10 @@ function qaByAdAggregatedCreativeRotation(job) {
 
     var site = cmDAO.get('Sites', placement.siteId);
 
+    // Campaign
+    feedItem['Campaign ID'] = campaign.id;
+    feedItem['Campaign Name'] = campaign.name;
+
     // Site
     feedItem['Site Name'] = site.name;
 
@@ -211,13 +215,19 @@ function qaByAdAggregatedCreativeRotation(job) {
 
     // Ad
     feedItem['Ad Name'] = ad.name;
+    //feedItem['Ad Created Date'] = dataUtils.formatDateTime(ad.createInfo.time);
+    feedItem['Ad Created Date'] = dataUtils.formatDateTime(new Date(parseInt(ad.createInfo.time)));
+    feedItem['Ad Last Modified Date'] = dataUtils.formatDateTime(new Date(parseInt(ad.lastModifiedInfo.time)));
 
     // Creative
     var creativeNames = [];
+    var creativeWeights = [];
     var landingPageNames = [];
     var landingPageUrls = [];
     forEach(ad.creatives, function(index, creative) {
       creativeNames.push(creative.creative.name);
+
+      creativeWeights.push(creative.weight);
 
       if(creative.landingPage) {
         landingPageNames.push(creative.landingPage.name);
@@ -227,6 +237,7 @@ function qaByAdAggregatedCreativeRotation(job) {
     feedItem['Creative Names'] = creativeNames.join('\n');
     feedItem['Landing Page Name'] = landingPageNames.join('\n');
     feedItem['Landing Page URL'] = landingPageUrls.join('\n');
+    feedItem['Creative Rotation Weight'] = creativeWeights.join('\n');
 
     feedItem['Creative Rotation'] = dataUtils.creativeRotationType(ad.creativeRotation);
 
