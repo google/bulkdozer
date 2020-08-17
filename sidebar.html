@@ -195,37 +195,10 @@ function disableJobs(jobs) {
 function identifyItemsToLoad() {
   var jobs = [
     {
-      'entity': 'AdvertiserLandingPages'
-    },
-    {
       'entity': 'Campaigns'
     },
     {
-      'entity': 'EventTags'
-    },
-    {
-      'entity': 'Creatives'
-    },
-    {
-      'entity': 'PlacementGroups'
-    },
-    {
       'entity': 'Placements'
-    },
-    {
-      'entity': 'Ads'
-    },
-    {
-      'entity': 'PlacementPricingSchedule'
-    },
-    {
-      'entity': 'AdCreativeAssignment'
-    },
-    {
-      'entity': 'AdPlacementAssignment'
-    },
-    {
-      'entity': 'AdEventTagAssignment'
     }
   ];
 
@@ -233,9 +206,6 @@ function identifyItemsToLoad() {
 }
 
 function configureMainEntityFetchJobs(jobsMap) {
-  jobsMap['AdvertiserLandingPages'].run = true;
-  jobsMap['AdvertiserLandingPages'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-
   jobsMap['Campaigns'].run = true;
   jobsMap['Campaigns'].preFetchConfigs = [
     {
@@ -246,25 +216,8 @@ function configureMainEntityFetchJobs(jobsMap) {
     }
   ]
 
-  jobsMap['PlacementGroups'].run = true;
-  jobsMap['PlacementGroups'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-  jobsMap['PlacementGroups'].preFetchConfigs = [
-    {
-      'entity': 'Campaigns',
-      'listName': 'campaigns',
-      'filterName': 'ids',
-      'fieldName': 'campaignId'
-    },{
-      'entity': 'Sites',
-      'listName': 'sites',
-      'filterName': 'ids',
-      'fieldName': 'siteId'
-    }
-  ];
-
   jobsMap['Placements'].run = true;
   jobsMap['Placements'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-  jobsMap['Placements'].placementGroupIds = jobsMap['PlacementGroups'].idsToLoad;
   jobsMap['Placements'].preFetchConfigs = [
     {
       'entity': 'Campaigns',
@@ -281,39 +234,6 @@ function configureMainEntityFetchJobs(jobsMap) {
       'listName': 'placementGroups',
       'filterName': 'ids',
       'fieldName': 'placementGroupId'
-    }
-  ];
-
-  jobsMap['Ads'].run = true;
-  jobsMap['Ads'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-  jobsMap['Ads'].placementIds = jobsMap['Placements'].idsToLoad;
-  jobsMap['Ads'].preFetchConfigs = [
-    {
-      'entity': 'Campaigns',
-      'listName': 'campaigns',
-      'filterName': 'ids',
-      'fieldName': 'campaignId'
-    },{
-      'entity': 'Placements',
-      'listName': 'placements',
-      'filterName': 'ids',
-      'fieldName': 'placementId'
-    },{
-      'entity': 'PlacementGroups',
-      'listName': 'placementGroups',
-      'filterName': 'ids',
-      'fieldName': 'placementGroupId'
-    }
-  ];
-
-  jobsMap['Creatives'].run = true;
-  jobsMap['Creatives'].campaignIds = jobsMap['Campaigns'].idsToLoad;
-  jobsMap['Creatives'].preFetchConfigs = [
-    {
-      'entity': 'Campaigns',
-      'listName': 'campaigns',
-      'filterName': 'ids',
-      'fieldName': 'campaignId'
     }
   ];
 }
@@ -347,55 +267,6 @@ function loadFromCM() {
       disableJobs(jobs);
 
       configureMainEntityFetchJobs(jobsMap);
-
-      return new Runner().run('cmLoad', jobs);
-    }).then(function(jobs) {
-      return logger.log(jobs);
-    }).then(function(jobs) {
-      setStatus('Loading relationship tabs');
-
-      var jobsMap = getJobsMap(jobs);
-      disableJobs(jobs);
-
-      jobsMap['EventTags'].run = true;
-      jobsMap['EventTags'].adIds = jobsMap['Ads'].loadedIds;
-      jobsMap['EventTags'].campaignIds = jobsMap['Campaigns'].loadedIds;
-      jobsMap['EventTags'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        }
-      ];
-
-      jobsMap['PlacementPricingSchedule'].run = true;
-      jobsMap['PlacementPricingSchedule'].idsToLoad = jobsMap['Placements'].loadedIds;
-
-      jobsMap['AdCreativeAssignment'].run = true;
-      jobsMap['AdCreativeAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
-      jobsMap['AdCreativeAssignment'].preFetchConfigs = [
-        {
-          'entity': 'Creatives',
-          'listName': 'creatives',
-          'filterName': 'ids',
-          'fieldName': 'creativeId'
-        }
-      ];
-
-      jobsMap['AdPlacementAssignment'].run = true;
-      jobsMap['AdPlacementAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
-      jobsMap['AdPlacementAssignment'].preFetchConfigs = [
-        {
-          'entity': 'Placements',
-          'listName': 'placements',
-          'filterName': 'ids',
-          'fieldName': 'placementId'
-        }
-      ];
-
-      jobsMap['AdEventTagAssignment'].run = true;
-      jobsMap['AdEventTagAssignment'].idsToLoad = jobsMap['Ads'].loadedIds;
 
       return new Runner().run('cmLoad', jobs);
     }).then(function(jobs) {
@@ -524,13 +395,8 @@ function qaCMLoad() {
 function newIdMap() {
   var result = {};
   var entities = [
-      'AdvertiserLandingPages',
       'Campaigns',
-      'PlacementGroups',
-      'Placements',
-      'EventTags',
-      'Creatives',
-      'Ads'
+      'Placements'
   ];
 
   for(var i = 0; i < entities.length; i++) {
@@ -830,16 +696,6 @@ function pushToCM() {
     }).then(function(idMap) {
       var jobs = [
         {
-          'entity': 'AdvertiserLandingPages',
-          'preFetchConfigs': [
-            {
-              'entity': 'AdvertiserLandingPages',
-              'listName': 'landingPages',
-              'filterName': 'ids',
-              'fieldName': 'Landing Page ID'
-            }
-          ]
-        },{
           'entity': 'Campaigns',
           'preFetchConfigs': [
             {
@@ -852,51 +708,6 @@ function pushToCM() {
               'listName': 'campaigns',
               'filterName': 'ids',
               'fieldName': 'Campaign ID'
-            }
-          ]
-        },{
-          'entity': 'EventTags',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            }
-          ]
-        },{
-          'entity': 'Creatives',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Creatives',
-              'listName': 'creatives',
-              'filterName': 'ids',
-              'fieldName': 'Creative ID'
-            }
-          ]
-        },{
-          'entity': 'PlacementGroups',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Sites',
-              'listName': 'sites',
-              'filterName': 'ids',
-              'fieldName': 'Site ID'
-            },{
-              'entity': 'PlacementGroups',
-              'listName': 'placementGroups',
-              'filterName': 'ids',
-              'fieldName': 'Placement Group ID'
             }
           ]
         },{
@@ -922,21 +733,6 @@ function pushToCM() {
               'listName': 'placements',
               'filterName': 'ids',
               'fieldName': 'Placement ID'
-            }
-          ]
-        },{
-          'entity': 'Ads',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Ads',
-              'listName': 'ads',
-              'filterName': 'ids',
-              'fieldName': 'Ad ID'
             }
           ]
         }
