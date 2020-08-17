@@ -691,6 +691,14 @@ var CampaignLoader = function(cmDAO) {
 
   this.addReference('Landing Page', fields.landingPageId);
 
+  this.createPushJobs = function(job) {
+    job.jobs = [];
+    return job;
+  }
+
+  this.push = function(job) {
+    return job;
+  }
   /**
    * Turns a Campaign Manager Campaign object from the API into a feed item to
    * be written to the sheet
@@ -1190,11 +1198,6 @@ var PlacementLoader = function(cmDAO) {
    * @see CampaignLoader.preProcessPush
    */
   this.preProcessPush = function(job) {
-    var feedItem = job.feedItem;
-    var placement = job.cmObject;
-
-    feedItem[fields.placementStartDate] = this.formatDate(feedItem, fields.placementStartDate);
-    feedItem[fields.placementEndDate] = this.formatDate(feedItem, fields.placementEndDate);
   }
 
   /**
@@ -1421,44 +1424,16 @@ var PlacementLoader = function(cmDAO) {
     var placement = job.cmObject;
 
     // Handle base fields
-    this.assign(placement, 'name', feedItem, fields.placementName, true);
-    this.assign(placement, 'archived', feedItem, this.isTrue(fields.archived));
-    this.assign(placement, 'adBlockingOptOut', feedItem, this.isTrue(fields.adBlocking));
-    this.assign(placement, 'siteId', feedItem, fields.siteId, true);
-    this.assign(placement, 'placementGroupId', feedItem, fields.placementGroupId, false);
-    this.assign(placement, 'campaignId', feedItem, fields.campaignId, true);
-
     if(!placement.tagSetting) {
       placement.tagSetting = {};
     }
     this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
-
-    placement.paymentSource = 'PLACEMENT_AGENCY_PAID';
-
-    processActiveViewAndVerification(job);
-    processPricingSchedule(job);
-    processCompatibility(job);
-    processSkippability(job);
   }
 
   /**
    * @see LandingPageLoader.postProcessPush
    */
   this.postProcessPush = function(job) {
-    var feedItem = job.feedItem;
-    var placement = job.cmObject;
-    var site = cmDAO.get('Sites', feedItem[fields.siteId]);
-    var campaign = cmDAO.get('Campaigns', feedItem[fields.campaignId]);
-
-    if(feedItem[fields.placementGroupId]) {
-      var placementGroup = cmDAO.get('PlacementGroups', feedItem[fields.placementGroupId]);
-      feedItem[fields.placementGroupName] = placementGroup.name;
-    }
-
-    feedItem[fields.siteName] = site.name;
-    feedItem[fields.campaignName] = campaign.name;
-
-    pricingSchedulePostProcess(job);
   }
 }
 PlacementLoader.prototype = Object.create(BaseLoader.prototype);
@@ -2197,21 +2172,13 @@ function doBuildHierarchy(job) {
 
 // Map of loaders used by getLoader
 var loaders;
+
 function getLoaders() {
   var cmDAO = new CampaignManagerDAO(getProfileId());
   if(!loaders) {
     loaders = {
       'Campaigns': new CampaignLoader(cmDAO),
-      'AdvertiserLandingPages': new LandingPageLoader(cmDAO),
-      'EventTags': new EventTagLoader(cmDAO),
-      'Creatives': new CreativeLoader(cmDAO),
-      'PlacementGroups': new PlacementGroupLoader(cmDAO),
-      'Placements': new PlacementLoader(cmDAO),
-      'Ads': new AdLoader(cmDAO),
-      'PlacementPricingSchedule': new PricingScheduleLoader(cmDAO),
-      'AdCreativeAssignment': new AdCreativeLoader(cmDAO),
-      'AdPlacementAssignment': new AdPlacementLoader(cmDAO),
-      'AdEventTagAssignment': new AdEventTagLoader(cmDAO)
+      'Placements': new PlacementLoader(cmDAO)
     }
   }
 
