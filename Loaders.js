@@ -1829,7 +1829,10 @@ var AdLoader = function(cmDAO) {
         ad.deliverySchedule.impressionRatio = 1;
       }
       ad.deliverySchedule.priority = feedItem[fields.adPriority];
-      ad.deliverySchedule.hardCutoff = feedItem[fields.hardCutoff];
+
+      if(feedItem.hasOwnProperty(fields.hardCutoff) && feedItem[fields.hardCutoff] !== '') {
+        ad.deliverySchedule.hardCutoff = this.isTrue(feedItem[fields.hardCutoff]);
+      }
     }
 
     // Handle creative assignment
