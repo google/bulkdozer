@@ -1094,6 +1094,20 @@ var PlacementLoader = function(cmDAO) {
   this.addReference('Campaign', fields.campaignId);
   this.addReference('Placement Group', fields.placementGroupId);
 
+  var targetKeys = null;
+
+  function getTargetKeys() {
+    if(!targetKeys) {
+      var raw = getSheetDAO().getValue('Store', 'B3');
+
+      targetKeys = raw.toString().split(',').map(function(elem) {
+        return elem.trim();
+      });
+    }
+
+    return targetKeys;
+  }
+
   /**
    * @see LandingPageLoader.processSearchOptions
    */
@@ -1422,11 +1436,44 @@ var PlacementLoader = function(cmDAO) {
   this.processPush = function(job) {
     var feedItem = job.feedItem;
     var placement = job.cmObject;
+    var keyValues = null;
 
-    // Handle base fields
+    if(feedItem.hasOwnProperty('Impression Tracker') && feedItem['Impression Tracker'] !== '') {
+      var targetKeys = getTargetKeys();
+      var impressionPx = feedItem['Impression Tracker'];
+      var decodedPx = decodeURIComponent(impressionPx);
+      var rex = /<img.*?src=['"](.*?)['"]/; // regex
+
+      try {
+        var tag = rex.exec(decodedPx)[1];
+      } catch (err) {
+        throw err;
+      }
+      var qs = {};
+
+      tag.slice(tag.indexOf('?') + 1).split('&').forEach(function(pair) {
+        var kv = pair.split('=');
+        qs[kv[0]] = kv[1];
+      });
+
+      var keyValues = [];
+      targetKeys.forEach(function(key) {
+        if (qs.hasOwnProperty(key)) {
+          keyValues.push(key + '=' + qs[key])
+        } else {
+          // all values are expected to exist
+          throw new Error('Key name ' + key + ' not found in row ' +
+            feedItem['Placement ID'] + ' impression tracker: ' + tag);
+        }
+      });
+
+      feedItem[fields.placementAdditionalKeyValues] = keyValues.join(';');
+    }
+
     if(!placement.tagSetting) {
       placement.tagSetting = {};
     }
+
     this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
   }
 
