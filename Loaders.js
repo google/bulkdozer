@@ -787,7 +787,7 @@ var LandingPageLoader = function(cmDAO) {
   this.processSearchOptions = function(job, searchOptions) {
     result = false;
 
-    if(job.campaignIds) {
+    if(job.campaignIds && job.campaignIds.length > 0) {
       searchOptions['campaignIds'] = job.campaignIds;
 
       result = true;
@@ -880,7 +880,7 @@ var EventTagLoader = function(cmDAO) {
         var adId = job.adIds[i];
 
         var eventTags = cmDAO.list('EventTags', 'eventTags', {
-          'adId': campaignId
+          'adId': adId
         });
 
         for(var j = 0; j < eventTags.length; j++) {
@@ -996,7 +996,7 @@ var PlacementGroupLoader = function(cmDAO) {
   this.processSearchOptions = function(job, searchOptions) {
     var result = false;
 
-    if(job.campaignIds) {
+    if(job.campaignIds && job.campaignIds.length > 0) {
       searchOptions['campaignIds'] = job.campaignIds;
 
       result = true;
