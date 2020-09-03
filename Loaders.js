@@ -1257,7 +1257,7 @@ var PlacementLoader = function(cmDAO) {
         var pricingPeriod = {
           'endDate': that.formatDate(pricingFeedItem, fields.pricingPeriodEnd),
           'startDate': that.formatDate(pricingFeedItem, fields.pricingPeriodStart),
-          'rateOrCostNanos': pricingFeedItem[fields.pricingPeriodRate] * 1000000000,
+          'rateOrCostNanos': Math.floor(pricingFeedItem[fields.pricingPeriodRate] * 1000000000),
           'units': pricingFeedItem[fields.pricingPeriodUnits]
         }
 
