@@ -875,21 +875,40 @@ var EventTagLoader = function(cmDAO) {
     }
 
     // Fetch all event tags associated with the ads
+    // The API doesn't support fetching event tags in bulk like most of the
+    // other entities, you can only fetch it by a single advertiser id, campaign
+    // id, or ad id. To limit the number of API calls we identify the
+    // advertisers ids for all ads and fetch at that level which is the highest,
+    // then include only event tags that are being overriden by the ads.
     if(job.adIds && job.adIds.length > 0) {
-      for(var i = 0; i < job.adIds.length; i++) {
-        var adId = job.adIds[i];
+      var ads = cmDAO.chunkFetch('Ads', 'ads', job.adIds);
 
-        var eventTags = cmDAO.list('EventTags', 'eventTags', {
-          'adId': adId
-        });
+      var advertiserIds = [];
+      var eventTagIds = [];
 
-        for(var j = 0; j < eventTags.length; j++) {
-          var eventTag = eventTags[j];
+      for(var i = 0; i < ads.length; i++) {
+        var ad = ads[i];
 
-          if(!eventTagsMap[eventTag.id]) {
-            eventTagsMap[eventTag.id] = eventTag;
+        if(ad.eventTagOverrides && ad.eventTagOverrides.length > 0) {
+          this.pushUnique(advertiserIds, ad.advertiserId);
+
+          for(j = 0; j < ad.eventTagOverrides.length; j++) {
+            var eventTagOverride = ad.eventTagOverrides[j];
+
+            this.pushUnique(eventTagIds, eventTagOverride.id);
           }
         }
+      }
+
+      if(eventTagIds.length > 0 && advertiserIds.length > 0) {
+        forEach(advertiserIds, function(index, advertiserId) {
+          forEach(cmDAO.list('EventTags', 'eventTags',
+                  { 'advertiserId': advertiserId }), function(index, eventTag) {
+            if(eventTagIds.indexOf(eventTag.id) == -1) {
+              eventTagsMap[eventTag.id] = eventTag;
+            }
+          });
+        });
       }
     }
 
@@ -1610,6 +1629,10 @@ var AdLoader = function(cmDAO) {
       result = true;
     }
 
+    if(getActiveOnlyFlag()) {
+      searchOptions['active'] = true;
+    }
+
     return result;
   }
 
@@ -2110,6 +2133,15 @@ function getProfileId() {
   return getSheetDAO().getValue('Store', 'B2');
 }
 
+/*
+ * Gets the ActiveOnly flag from the store tab
+ *
+ * returns: boolean representing the value of the active flag
+ */
+function getActiveOnlyFlag() {
+  return getSheetDAO().getValue('Store', 'B5');
+}
+
 /**
  * Given lists of CM objects builds a hierarchy
  * params:
@@ -2132,64 +2164,77 @@ function doBuildHierarchy(job) {
 
   job.logs.push([new Date(), 'Building CM entity hierarchy']);
 
+  var creativesMap = {};
+  forEach(job.creatives, function(index, creative) {
+    creativesMap[creative.id] = creative;
+  });
+
+  var lpMap = {};
+  forEach(job.landingPages, function(index, landingPage) {
+    lpMap[landingPage.id] = landingPage;
+  });
+
+  var campaignMap = {};
   forEach(job.campaigns, function(index, campaign) {
+    console.log('campaign:' + campaign.id);
     job.hierarchy.push(campaign);
 
     campaign.placements = [];
     campaign.placementGroups = [];
 
-    forEach(job.placementGroups, function(index, placementGroup) {
-      placementGroup.placements = [];
+    campaignMap[campaign.id] = campaign;
+  });
 
-      if(placementGroup.campaignId == campaign.id) {
-        campaign.placementGroups.push(placementGroup);
+  var pgMap = {};
+  forEach(job.placementGroups, function(index, placementGroup) {
+    console.log('placementGroup:' + placementGroup.id);
+    placementGroup.placements = [];
+
+    pgMap[placementGroup.id] = placementGroup;
+
+    if(campaignMap[placementGroup.campaignId]) {
+      campaignMap[placementGroup.campaignId].placementGroups.push(placementGroup);
+    }
+  });
+
+  var placementMap = [];
+  forEach(job.placements, function(index, placement) {
+    console.log('placement:' + placement.id);
+
+    placement.ads = [];
+    if(placement.placementGroupId && pgMap[placement.placementGroupId]) {
+      pgMap[placement.placementGroupId].placements.push(placement);
+    } else if(placement.campaignId && campaignMap[placement.campaignId]) {
+      campaignMap[placement.campaignId].placements.push(placement);
+    }
+
+    placementMap[placement.id] = placement;
+  });
+
+  forEach(job.ads, function(index, ad) {
+    console.log('ad:' + ad.id);
+
+    forEach(ad.placementAssignments, function(index, assignment) {
+      if(placementMap[assignment.placementId]) {
+        placementMap[assignment.placementId].ads.push(ad);
       }
-
-      forEach(job.placements, function(index, placement) {
-        if(placement.placementGroupId == placementGroup.id) {
-          placementGroup.placements.push(placement);
-        }
-      });
     });
 
-    forEach(job.placements, function(index, placement) {
-      placement.ads = [];
+    ad.creatives = [];
+    forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
+      console.log('creative rotation');
+      ad.creatives.push(assignment);
 
-      if(placement.campaignId == campaign.id && !placement.placementGroupId) {
-        campaign.placements.push(placement);
+      assignment.creative = creativesMap[assignment.creativeId];
+
+      var landingPageId = null;
+      if(assignment.clickThroughUrl.defaultLandingPage) {
+        landingPageId = campaignMap[ad.campaignId].defaultLandingPageId;
+      } else {
+        landingPageId = assignment.clickThroughUrl.landingPageId;
       }
 
-      forEach(job.ads, function(index, ad) {
-        forEach(ad.placementAssignments, function(index, assignment) {
-          if(assignment.placementId == placement.id) {
-            placement.ads.push(ad);
-          }
-        });
-
-        ad.creatives = [];
-        forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
-          ad.creatives.push(assignment);
-
-          forEach(job.creatives, function(index, creative) {
-            if(assignment.creativeId == creative.id) {
-              assignment.creative = creative;
-            }
-          });
-
-          var landingPageId = null;
-          if(assignment.clickThroughUrl.defaultLandingPage) {
-            landingPageId = campaign.defaultLandingPageId;
-          } else {
-            landingPageId = assignment.clickThroughUrl.landingPageId;
-          }
-
-          forEach(job.landingPages, function(index, landingPage) {
-            if(landingPageId == landingPage.id) {
-              assignment.landingPage = landingPage;
-            }
-          });
-        });
-      });
+      assignment.landingPage = lpMap[landingPageId];
     });
   });
 

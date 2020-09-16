@@ -253,5 +253,28 @@ var CampaignManagerDAO = function(profileId) {
     }, DEFAULT_RETRIES, DEFAULT_SLEEP);
   }
 
+  /**
+   * Fetches items of a given entity based on a list of ids. Since CM has a
+   * limitation of 500 ids per "list" call, this method splits the ids in chunks
+   * of up to 500 items and merges the result.
+   *
+   * params:
+   *  entity: Name of the CM entity to fetch
+   *  listName: Name of the list field returned by the api
+   *  ids: Array of integers representing the ids to fetch
+   *
+   * returns: Array of entities returned by CM
+   */
+  this.chunkFetch = function(entity, listName, ids) {
+    var result = [];
+
+    for(var i = 0; i < ids.length; i += 500) {
+      var chunk = ids.slice(i, i + 500);
+
+      result = result.concat(this.list(entity, listName, {'ids': chunk}));
+    }
+
+    return result;
+  }
 
 }
