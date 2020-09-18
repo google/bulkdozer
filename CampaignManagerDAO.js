@@ -56,20 +56,23 @@ var CampaignManagerDAO = function(profileId) {
   }
 
   /**
-   * Given an error raised by an API call, determines if the error has a chance
-   * of succeeding if it is retried. A good example of a "retriable" error is
-   * rate limit, in which case waiting for a few seconds and trying again might
-   * refresh the quota and allow the transaction to go through. This method is
-   * desidned to be used by the _retry function.
-   *
-   * params:
-   *  error: error to verify
-   *
-   * returns: true if the error is "retriable", false otherwise
-   */
+  * Given an error raised by an API call, determines if the error has a chance
+  * of succeeding if it is retried. A good example of a "retriable" error is
+  * rate limit, in which case waiting for a few seconds and trying again might
+  * refresh the quota and allow the transaction to go through. This method is
+  * desidned to be used by the _retry function.
+  *
+  * params:
+  * error: error to verify
+  *
+  * returns: true if the error is "retriable", false otherwise
+  */
   function isRetriableError(error) {
     if(error && error.message) {
-      return error.message.toLowerCase().indexOf('user rate limit exceeded') != -1;
+      var message = error.message.toLowerCase();
+
+      return message.indexOf('user rate limit exceeded') != -1 ||
+      message.indexOf('quota exceeded') != -1;
     }
 
     return false;
@@ -133,6 +136,18 @@ var CampaignManagerDAO = function(profileId) {
   }
 
   // PUBLIC METHODS
+
+  /**
+   * Sets the cache object to be used by this instance. This allows for
+   * controlling which type of cache to use, e.g. in memory or cache service.
+   *
+   * params:
+   *  newCache: Object to be used for caching
+   */
+  this.setCache = function(newCache) {
+    cache = newCache;
+  }
+
   /**
    * Fetches a list of items from CM
    *

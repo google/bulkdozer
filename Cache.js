@@ -21,11 +21,11 @@
 
 // Use this to use in memory cache, it is not shared across jobs, and it may
 // exceed the apps script memory limit, but it is significantly faster
-var CACHE_MODE = 'MEMORY';
+var DEFAULT_CACHE_MODE = 'MEMORY';
 
 // Use this to use the Apps Script cache service, it is shared across jobs and
 // it automatically evicts items to avoid exceeding limits, but it is slower
-//var CACHE_MODE = 'SERVICE';
+//var DEFAULT_CACHE_MODE = 'SERVICE';
 
 /** Singleton instance of cache */
 var cache = null;
@@ -50,11 +50,12 @@ var InMemoryCache = function() {
   }
 }
 
-function getCache() {
+function getCache(mode) {
+  mode = mode || DEFAULT_CACHE_MODE;
   if(!cache) {
-    if(CACHE_MODE == 'SERVICE') {
+    if(mode == 'SERVICE') {
       cache = CacheService.getUserCache();
-    } else if(CACHE_MODE == 'MEMORY') {
+    } else if(mode == 'MEMORY') {
       cache = new InMemoryCache();
     }
   }

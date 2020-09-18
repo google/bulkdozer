@@ -417,6 +417,7 @@ var BaseLoader = function(cmDAO) {
    */
   this.load = function(job) {
     console.log('Loading ' + this.label);
+    cmDAO.setCache(getCache('MEMORY'));
 
     var itemsToLoad = this.fetchItemsToLoad(job);
 
@@ -592,6 +593,8 @@ var BaseLoader = function(cmDAO) {
       this.log(job, this.idField + ' is empty for ' + this.label + '. Skipping');
       return;
     }
+
+    cmDAO.setCache(getCache('SERVICE'));
 
     var idValue = job.feedItem[this.idField];
 
