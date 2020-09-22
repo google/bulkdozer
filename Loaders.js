@@ -2224,9 +2224,14 @@ function doBuildHierarchy(job) {
     });
 
     ad.creatives = [];
+    ad.weightTotal = 0;
     forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
       console.log('creative rotation');
       ad.creatives.push(assignment);
+
+      if(assignment.weight) {
+        ad.weightTotal += assignment.weight;
+      }
 
       assignment.creative = creativesMap[assignment.creativeId];
 

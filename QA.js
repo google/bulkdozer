@@ -166,6 +166,10 @@ function qaByCreativeRotation(job) {
         feedItem['Landing Page URL'] = creative.landingPage.url;
         feedItem['Landing Page ID'] = creative.landingPage.id;
       }
+
+      if(ad.weightTotal) {
+        feedItem['Creative Rotation %'] = (creative.weight / ad.weightTotal * 100) + '%';
+      }
     }
 
     feed.push(feedItem);
