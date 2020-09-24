@@ -2261,25 +2261,27 @@ function doBuildHierarchy(job) {
 
     ad.creatives = [];
     ad.weightTotal = 0;
-    forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
-      console.log('creative rotation');
-      ad.creatives.push(assignment);
+    if(ad.creativeRotation && ad.creativeRotation.creativeAssignments) {
+      forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
+        console.log('creative rotation');
+        ad.creatives.push(assignment);
 
-      if(assignment.weight) {
-        ad.weightTotal += assignment.weight;
-      }
+        if(assignment.weight) {
+          ad.weightTotal += assignment.weight;
+        }
 
-      assignment.creative = creativesMap[assignment.creativeId];
+        assignment.creative = creativesMap[assignment.creativeId];
 
-      var landingPageId = null;
-      if(assignment.clickThroughUrl.defaultLandingPage) {
-        landingPageId = campaignMap[ad.campaignId].defaultLandingPageId;
-      } else {
-        landingPageId = assignment.clickThroughUrl.landingPageId;
-      }
+        var landingPageId = null;
+        if(assignment.clickThroughUrl.defaultLandingPage) {
+          landingPageId = campaignMap[ad.campaignId].defaultLandingPageId;
+        } else {
+          landingPageId = assignment.clickThroughUrl.landingPageId;
+        }
 
-      assignment.landingPage = lpMap[landingPageId];
-    });
+        assignment.landingPage = lpMap[landingPageId];
+      });
+    }
   });
 
   return job;
