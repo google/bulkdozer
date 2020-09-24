@@ -37,37 +37,10 @@ function getActiveOnlyFlag() {
   return getSheetDAO().getValue('Store', 'B5');
 }
 
-/*
- * Gets the Timezone from the store tab
- *
- * returns: String representing the value of the timezone config
- */
-function getTimezone() {
-  return getSheetDAO().getValue('Store', 'B6');
-}
-
-/*
- * Gets the Date format from the store tab
- *
- * returns: String representing the value of the date format config
- */
-function getDateFormat() {
-  return getSheetDAO().getValue('Store', 'B7');
-}
-
-/*
- * Gets the Date time format from the store tab
- *
- * returns: String representing the value of the date time format config
- */
-function getDateTimeFormat() {
-  return getSheetDAO().getValue('Store', 'B8');
-}
-
 var DataUtils = function() {
-  var timezone = getTimezone();
-  var dateFormat = getDateFormat();
-  var dateTimeFormat = getDateTimeFormat();
+  var timezone = getSheetDAO().getValue('Store', 'B6');
+  var dateFormat = getSheetDAO().getValue('Store', 'B7');
+  var dateTimeFormat = getSheetDAO().getValue('Store', 'B8');
 
   this.creativeRotationType = function(creativeRotation) {
     if (creativeRotation) {
