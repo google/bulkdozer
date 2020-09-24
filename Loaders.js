@@ -19,7 +19,56 @@
 *
 ***************************************************************************/
 
+/*
+ * Gets the profile id from the Store tab
+ *
+ * returns: profile id
+ */
+function getProfileId() {
+  return getSheetDAO().getValue('Store', 'B2');
+}
+
+/*
+ * Gets the ActiveOnly flag from the store tab
+ *
+ * returns: boolean representing the value of the active flag
+ */
+function getActiveOnlyFlag() {
+  return getSheetDAO().getValue('Store', 'B5');
+}
+
+/*
+ * Gets the Timezone from the store tab
+ *
+ * returns: String representing the value of the timezone config
+ */
+function getTimezone() {
+  return getSheetDAO().getValue('Store', 'B6');
+}
+
+/*
+ * Gets the Date format from the store tab
+ *
+ * returns: String representing the value of the date format config
+ */
+function getDateFormat() {
+  return getSheetDAO().getValue('Store', 'B7');
+}
+
+/*
+ * Gets the Date time format from the store tab
+ *
+ * returns: String representing the value of the date time format config
+ */
+function getDateTimeFormat() {
+  return getSheetDAO().getValue('Store', 'B8');
+}
+
 var DataUtils = function() {
+  var timezone = getTimezone();
+  var dateFormat = getDateFormat();
+  var dateTimeFormat = getDateTimeFormat();
+
   this.creativeRotationType = function(creativeRotation) {
     if (creativeRotation) {
       if (creativeRotation.type == 'CREATIVE_ROTATION_TYPE_SEQUENTIAL' &&
@@ -68,8 +117,40 @@ var DataUtils = function() {
       return ''
     }
   }
+
+  this.formatDateUserFormat = function(value) {
+    if(!value) {
+      return '';
+    }
+
+    if(typeof(value) == 'string') {
+      value = new Date(value);
+    }
+
+    return Utilities.formatDate(value, timezone, dateFormat);
+  }
+
+  this.formatDateTimeUserFormat = function(value) {
+    if(!value) {
+      return '';
+    }
+
+    if(typeof(value) == 'string') {
+      value = new Date(value);
+    }
+
+    return Utilities.formatDate(value, timezone, dateTimeFormat);
+  }
 }
-var dataUtils = new DataUtils();
+var dataUtils;
+
+function getDataUtils() {
+  if(!dataUtils) {
+    dataUtils = new DataUtils();
+  }
+
+  return dataUtils;
+}
 
 /**
  * Base class for all loaders, provides common functionality and top level
@@ -1654,7 +1735,7 @@ var AdLoader = function(cmDAO) {
 
     var creativeRotation = ad.creativeRotation;
 
-    feedItem[fields.creativeRotation] = dataUtils.creativeRotationType(ad.creativeRotation);
+    feedItem[fields.creativeRotation] = getDataUtils().creativeRotationType(ad.creativeRotation);
 
     feedItem[fields.adArchived] = ad.archived;
     feedItem[fields.adPriority] =
@@ -2125,24 +2206,6 @@ PricingScheduleLoader.prototype = Object.create(BaseLoader.prototype);
  */
 function getLoader(entity) {
   return getLoaders()[entity];
-}
-
-/*
- * Gets the profile id from the Store tab
- *
- * returns: profile id
- */
-function getProfileId() {
-  return getSheetDAO().getValue('Store', 'B2');
-}
-
-/*
- * Gets the ActiveOnly flag from the store tab
- *
- * returns: boolean representing the value of the active flag
- */
-function getActiveOnlyFlag() {
-  return getSheetDAO().getValue('Store', 'B5');
 }
 
 /**

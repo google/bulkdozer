@@ -93,7 +93,6 @@ function qaByCreativeRotation(job) {
   job.logs.push([new Date(), 'Generating QA Report']);
 
   var feed = [];
-  var feed = [];
 
   var cmDAO = new CampaignManagerDAO(getProfileId());
 
@@ -119,8 +118,8 @@ function qaByCreativeRotation(job) {
 
       feedItem['Placement Group Type'] = placementGroup.placementGroupType;
 
-      feedItem['Placement Group Start Date'] = placementGroup.pricingSchedule.startDate;
-      feedItem['Placement Group End Date'] = placementGroup.pricingSchedule.endDate;
+      feedItem['Placement Group Start Date'] = getDataUtils().formatDateUserFormat(placementGroup.pricingSchedule.startDate);
+      feedItem['Placement Group End Date'] = getDataUtils().formatDateUserFormat(placementGroup.pricingSchedule.endDate);
       feedItem['Pricing Type'] = placementGroup.pricingSchedule.pricingType;
     } else {
       feedItem['Site ID'] = placement.siteId;
@@ -128,8 +127,8 @@ function qaByCreativeRotation(job) {
 
     feedItem['Placement Name'] = placement.name;
     feedItem['Placement ID'] = placement.id
-    feedItem['Placement Start Date'] = placement.pricingSchedule.startDate;
-    feedItem['Placement End Date'] = placement.pricingSchedule.endDate;
+    feedItem['Placement Start Date'] = getDataUtils().formatDateUserFormat(placement.pricingSchedule.startDate);
+    feedItem['Placement End Date'] = getDataUtils().formatDateUserFormat(placement.pricingSchedule.endDate);
     feedItem['Ad Blocking'] = placement.adBlockingOptOut;
     feedItem['Pricing Schedule Cost Structure'] = placement.pricingSchedule.pricingType;
     feedItem['Type'] = placement.compatibility;
@@ -138,8 +137,8 @@ function qaByCreativeRotation(job) {
     feedItem['Ad ID'] = ad.id;
     feedItem['Ad Type'] = ad.type;
     feedItem['Asset Size'] = ad.size ? ad.size.width + 'x' + ad.size.height : '';
-    feedItem['Ad Start Date'] = ad.startTime;
-    feedItem['Ad End Date'] = ad.endTime;
+    feedItem['Ad Start Date'] = getDataUtils().formatDateTimeUserFormat(ad.startTime);
+    feedItem['Ad End Date'] = getDataUtils().formatDateTimeUserFormat(ad.endTime);
     if(ad.deliverySchedule) {
       feedItem['Ad Priority'] = ad.deliverySchedule.priority;
     }
@@ -159,8 +158,8 @@ function qaByCreativeRotation(job) {
       feedItem['Creative ID'] = creative.creative.id;
       feedItem['Creative Size'] = creative.size ? creative.size.width + 'x' + creative.size.height : '';
       feedItem['Creative Rotation Weight'] = creative.weight;
-      feedItem['Creative Start Date'] = creative.startTime;
-      feedItem['Creative End Date'] = creative.endTime;
+      feedItem['Creative Start Date'] = getDataUtils().formatDateTimeUserFormat(creative.startTime);
+      feedItem['Creative End Date'] = getDataUtils().formatDateTimeUserFormat(creative.endTime);
       if(creative.landingPage) {
         feedItem['Landing Page Name'] = creative.landingPage.name
         feedItem['Landing Page URL'] = creative.landingPage.url;
@@ -214,14 +213,14 @@ function qaByAdAggregatedCreativeRotation(job) {
       feedItem['Placement Size'] = placement.size ? placement.size.width + 'x' + placement.size.height : '';
     }
 
-    feedItem['Placement Start Date'] = placement.pricingSchedule.startDate;
-    feedItem['Placement End Date'] = placement.pricingSchedule.endDate;
+    feedItem['Placement Start Date'] = getDataUtils().formatDateUserFormat(placement.pricingSchedule.startDate);
+    feedItem['Placement End Date'] = getDataUtils().formatDateUserFormat(placement.pricingSchedule.endDate);
 
     // Ad
     feedItem['Ad Name'] = ad.name;
-    //feedItem['Ad Created Date'] = dataUtils.formatDateTime(ad.createInfo.time);
-    feedItem['Ad Created Date'] = dataUtils.formatDateTime(new Date(parseInt(ad.createInfo.time)));
-    feedItem['Ad Last Modified Date'] = dataUtils.formatDateTime(new Date(parseInt(ad.lastModifiedInfo.time)));
+    //feedItem['Ad Created Date'] = getDataUtils().formatDateTime(ad.createInfo.time);
+    feedItem['Ad Created Date'] = getDataUtils().formatDateTime(new Date(parseInt(ad.createInfo.time)));
+    feedItem['Ad Last Modified Date'] = getDataUtils().formatDateTime(new Date(parseInt(ad.lastModifiedInfo.time)));
 
     // Creative
     var creativeNames = [];
@@ -243,7 +242,7 @@ function qaByAdAggregatedCreativeRotation(job) {
     feedItem['Landing Page URL'] = landingPageUrls.join('\n');
     feedItem['Creative Rotation Weight'] = creativeWeights.join('\n');
 
-    feedItem['Creative Rotation'] = dataUtils.creativeRotationType(ad.creativeRotation);
+    feedItem['Creative Rotation'] = getDataUtils().creativeRotationType(ad.creativeRotation);
 
   });
 
