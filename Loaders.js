@@ -1497,7 +1497,24 @@ var PlacementLoader = function(cmDAO) {
     var placement = job.cmObject;
 
     // Handle base fields
+    this.assign(placement, 'name', feedItem, fields.placementName, true);
+    this.assign(placement, 'archived', feedItem, this.isTrue(fields.archived));
+    this.assign(placement, 'adBlockingOptOut', feedItem, this.isTrue(fields.adBlocking));
+    this.assign(placement, 'siteId', feedItem, fields.siteId, true);
+    this.assign(placement, 'placementGroupId', feedItem, fields.placementGroupId, false);
+    this.assign(placement, 'campaignId', feedItem, fields.campaignId, true);
+
+    if(!placement.tagSetting) {
+      placement.tagSetting = {};
+    }
+    this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
+
+    placement.paymentSource = 'PLACEMENT_AGENCY_PAID';
+
+    processActiveViewAndVerification(job);
     processPricingSchedule(job);
+    processCompatibility(job);
+    processSkippability(job);
   }
 
   /**
