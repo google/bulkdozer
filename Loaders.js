@@ -522,7 +522,10 @@ var BaseLoader = function(cmDAO) {
    *  job: the job object
    *
    * returns: this method communicates back throuh the job object by parsing the
-   * sheet of the tab of this instance into the job.jobs field
+   * sheet of the tab of this instance into the job.jobs field. Fields include
+   * "entity" with the entity name, "feedItem" with the line from the sheet, and
+   * all references loaded identified in the pre-fetch configs defined in each
+   * loader.
    */
   this.createPushJobs = function(job) {
     var feedProvider = new FeedProvider(this.tabName, this.keys).load();
@@ -542,6 +545,10 @@ var BaseLoader = function(cmDAO) {
       var pushJob = {
         'entity': job.entity,
         'feedItem': feedItem
+      }
+
+      if(this.preparePushJob) {
+        this.preparePushJob(job, pushJob);
       }
 
       job.jobs.push(pushJob);
@@ -1869,9 +1876,9 @@ var AdLoader = function(cmDAO) {
           'id': eventTag.id
         });
       }
-    }
 
-    ad.eventTagOverrides = eventTagAssignments;
+      ad.eventTagOverrides = eventTagAssignments;
+    }
   }
 
   /**
@@ -1916,16 +1923,40 @@ var AdLoader = function(cmDAO) {
     }
 
     // Handle creative assignment
-    processRotationStrategy(job);
-    processCreativeAssignments(job);
+    console.log('____________________');
+    console.log(job);
+    console.log('____________________');
+    if(job.processCreativeAssignments) {
+      processRotationStrategy(job);
+      processCreativeAssignments(job);
+    }
 
     // Handle placement assignment
-    processPlacementAssignment(job);
+    if(job.processPlacementAssignments) {
+      processPlacementAssignment(job);
+    }
 
     // Handle event tag assignment
-    processEventTagAssignment(job);
+    if(job.processEventTagAssignments) {
+      processEventTagAssignment(job);
+    }
+  }
 
-    // Handle landing pages
+  /**
+   * Gives child classes a chance to modify push jobs after they are created by
+   * the BaseLoader class
+   *
+   * params:
+   *   job: the "create push jobs" passed in by the front end, for in the object
+   *   structure @see BaseLoader.createPushJobs
+   *   BaseLoader.
+   *   pushJob: the newly created push job, can be modified direclty
+   *
+   */
+  this.preparePushJob = function(job, pushJob) {
+    pushJob.processPlacementAssignments = job.processPlacementAssignments;
+    pushJob.processCreativeAssignments = job.processCreativeAssignments;
+    pushJob.processEventTagAssignments = job.processEventTagAssignments;
   }
 
   /**
@@ -2258,6 +2289,10 @@ function doBuildHierarchy(job) {
         placementMap[assignment.placementId].ads.push(ad);
       }
     });
+
+    if(ad.clickThroughUrl && ad.clickThroughUrl.landingPageId) {
+      ad.landingPage = lpMap[ad.clickThroughUrl.landingPageId];
+    }
 
     ad.creatives = [];
     ad.weightTotal = 0;

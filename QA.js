@@ -19,6 +19,9 @@
 *
 ***************************************************************************/
 
+var CUSTOM_URL = 'Custom URL';
+var CLICK_TRACKER = 'Click Tracker';
+
 /**
  * Calls function for each ad.
  *
@@ -161,14 +164,23 @@ function qaByCreativeRotation(job) {
       feedItem['Creative Start Date'] = getDataUtils().formatDateTimeUserFormat(creative.startTime);
       feedItem['Creative End Date'] = getDataUtils().formatDateTimeUserFormat(creative.endTime);
       if(creative.landingPage) {
-        feedItem['Landing Page Name'] = creative.landingPage.name
+        feedItem['Landing Page Name'] = creative.landingPage.name;
         feedItem['Landing Page URL'] = creative.landingPage.url;
         feedItem['Landing Page ID'] = creative.landingPage.id;
+      } else if (creative.clickThroughUrl && creative.clickThroughUrl.customClickThroughUrl) {
+        feedItem['Landing Page Name'] = CUSTOM_URL;
+        feedItem['Landing Page URL'] = creative.clickThroughUrl.customClickThroughUrl;
       }
 
       if(ad.weightTotal) {
         feedItem['Creative Rotation %'] = (creative.weight / ad.weightTotal * 100) + '%';
       }
+    }
+
+    if(ad.type == 'AD_SERVING_CLICK_TRACKER' && ad.clickThroughUrl &&
+	ad.clickThroughUrl.computedClickThroughUrl) {
+      feedItem['Landing Page Name'] = CLICK_TRACKER;
+      feedItem['Landing Page URL'] = ad.clickThroughUrl.computedClickThroughUrl;
     }
 
     feed.push(feedItem);
@@ -219,14 +231,15 @@ function qaByAdAggregatedCreativeRotation(job) {
     // Ad
     feedItem['Ad Name'] = ad.name;
     //feedItem['Ad Created Date'] = getDataUtils().formatDateTime(ad.createInfo.time);
-    feedItem['Ad Created Date'] = getDataUtils().formatDateTime(new Date(parseInt(ad.createInfo.time)));
-    feedItem['Ad Last Modified Date'] = getDataUtils().formatDateTime(new Date(parseInt(ad.lastModifiedInfo.time)));
+    feedItem['Ad Created Date'] = getDataUtils().formatDateUserFormat(new Date(parseInt(ad.createInfo.time)));
+    feedItem['Ad Last Modified Date'] = getDataUtils().formatDateUserFormat(new Date(parseInt(ad.lastModifiedInfo.time)));
 
     // Creative
     var creativeNames = [];
     var creativeWeights = [];
     var landingPageNames = [];
     var landingPageUrls = [];
+
     forEach(ad.creatives, function(index, creative) {
       creativeNames.push(creative.creative.name);
 
@@ -235,8 +248,19 @@ function qaByAdAggregatedCreativeRotation(job) {
       if(creative.landingPage) {
         landingPageNames.push(creative.landingPage.name);
         landingPageUrls.push(creative.landingPage.url);
+      } else if(creative.clickThroughUrl && creative.clickThroughUrl.customClickThroughUrl) {
+        landingPageNames.push( CUSTOM_URL);
+        landingPageUrls.push(creative.clickThroughUrl.customClickThroughUrl);
       }
     });
+
+    if(ad.type == 'AD_SERVING_CLICK_TRACKER' && ad.landingPage) {
+      var landingPage = ad.landingPage;
+
+      landingPageNames.push(landingPage.name);
+      landingPageUrls.push(landingPage.url);
+    }
+
     feedItem['Creative Names'] = creativeNames.join('\n');
     feedItem['Landing Page Name'] = landingPageNames.join('\n');
     feedItem['Landing Page URL'] = landingPageUrls.join('\n');

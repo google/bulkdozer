@@ -311,6 +311,29 @@ function createPushJobs(job) {
 }
 
 /**
+ * Reads and returns the entity configurations defined in the Entity Configs
+ * tab
+ *
+ * params:
+ *  job: the job object
+ *  job.entityConfigs: Dictionary with the entity configurations
+ *
+ */
+function _getEntityConfigs(job) {
+  var entityConfigs = getSheetDAO().sheetToDict('Entity Configs');
+  job.entityConfigs = {};
+
+  forEach(entityConfigs, function(index, entityConfig) {
+    job.entityConfigs[entityConfig['Entity']] = entityConfig['Mode'];
+  });
+
+  return job;
+}
+function getEntityConfigs(job) {
+  return _invoke('_getEntityConfigs', job);
+}
+
+/**
  * Function that safely tries to parse an input as a JSON object, if it fails it
  * doesn't throw an excaption, rather it just returns the input
  *
