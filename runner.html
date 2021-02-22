@@ -126,7 +126,22 @@ var Runner = function() {
    *  error: the error returned by the backend
    */
   function errorHandler(input) {
-    var job = JSON.parse(input);
+    var job = null;
+
+    // This if chain was added because all of a sudden the error returned
+    // by the backend when exceptions are thrown changed from a simple string
+    // to an object that contains the error payload sent from the backend
+    // in a "message" field. We'll keep this logic here for now to ensure
+    // backward compatibility, but it can be removed in future releases
+    if(typeof(input) == 'object') {
+      console.log("error type is object");
+      job = JSON.parse(input.message);
+    } else if(typeof(input) == 'string'){
+      console.log("error type is string");
+      job = JSON.parse(input);
+    } else {
+      throw "Could not parse job error returned from backend"
+    }
 
     job.status = JOB_STATUS_ERROR;
     runnerJobs[job.id] = job;

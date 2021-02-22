@@ -8,5 +8,6 @@
     }]
   },
   "exceptionLogging": "STACKDRIVER",
-  "oauthScopes": ["https://www.googleapis.com/auth/script.container.ui", "https://www.googleapis.com/auth/dfareporting", "https://www.googleapis.com/auth/dfatrafficking", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.external_request"]
+  "oauthScopes": ["https://www.googleapis.com/auth/script.container.ui", "https://www.googleapis.com/auth/dfareporting", "https://www.googleapis.com/auth/dfatrafficking", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.external_request"],
+  "runtimeVersion": "V8"
 }

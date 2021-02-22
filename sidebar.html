@@ -208,10 +208,9 @@ function disableJobs(jobs) {
 function checkEntityMode(entityConfigs, entity, mode) {
   if(entityConfigs && entityConfigs[entity]) {
       return true;
-    } else if(entityConfigs[entity] == 'READ') {
-      if(mode == 'READ') {
-        return true;
-      }
+  } else if(entityConfigs[entity] == 'READ') {
+    if(mode == 'READ') {
+      return true;
     }
   }
 
