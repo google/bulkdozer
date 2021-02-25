@@ -34,7 +34,13 @@ function getProfileId() {
  * returns: boolean representing the value of the active flag
  */
 function getActiveOnlyFlag() {
-  return getSheetDAO().getValue('Store', 'B5');
+  var flag = getSheetDAO().getValue('Store', 'B5');
+
+  if(typeof(flag) == 'string') {
+    flag = flag.toLowerCase() == 'true'
+  }
+
+  return flag;
 }
 
 var DataUtils = function() {
