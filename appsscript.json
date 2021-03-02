@@ -4,7 +4,7 @@
     "enabledAdvancedServices": [{
       "userSymbol": "DoubleClickCampaigns",
       "serviceId": "dfareporting",
-      "version": "v3.3"
+      "version": "v3.4"
     }]
   },
   "exceptionLogging": "STACKDRIVER",

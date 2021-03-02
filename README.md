@@ -3,6 +3,7 @@
 # Bulkdozer Lite
 
 -   [Introduction](#introduction) <br/>
+-   [Installation](#installation) <br/>
 -   [Quickstart](#quickstart) <br/>
 -   [Terms and Conditions](#terms_and_conditions) <br/>
 -   [Support](#support) <br/>
@@ -37,6 +38,26 @@ main Bulkdozer version, and by using any of its functionality you agree with
 these terms, please see below.
 
 [Back to top](#top_page)
+
+<a name="installation"></a>
+
+## Installation
+
+Use the links below to navigate to each one of the tools available. Refer to the
+"Instructions" tab of each tool for details on how to deploy and use them.
+
+- [Bulkdozer
+  Lite](https://docs.google.com/spreadsheets/d/14NkTLqoRO37uTrhWiG8H7kp3yhNEmuOujy_qSTS4YDo)
+- [QA
+  Tools](https://docs.google.com/spreadsheets/d/10b00Gu2n2exBkeGKoVK67u5GPf88eOzma3kWXO14XMQ)
+- [Event Tag QA
+  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
+- [Landing Page QA Tool &
+  Editor](https://docs.google.com/spreadsheets/d/15b5rHLZJq5-ddnbsyfOzuK2I3oGeSzxKjL-qdwwfnn8)
+- [Key Value
+  Editor](https://docs.google.com/spreadsheets/d/1OnYlrGXN4bck9y4xnfzbr8WtEtINMRdyxjbV4wlOTn8)
+- [Cost
+  Editor](https://docs.google.com/spreadsheets/d/1o91F9acD1ACPBhXIufgDz8QfOuEU_GLLLBTT1Ok5f8w)
 
 <a name="quickstart"></a>
 

@@ -178,7 +178,7 @@ function qaByCreativeRotation(job) {
     }
 
     if(ad.type == 'AD_SERVING_CLICK_TRACKER' && ad.clickThroughUrl &&
-	ad.clickThroughUrl.computedClickThroughUrl) {
+        ad.clickThroughUrl.computedClickThroughUrl) {
       feedItem['Landing Page Name'] = CLICK_TRACKER;
       feedItem['Landing Page URL'] = ad.clickThroughUrl.computedClickThroughUrl;
     }
@@ -268,6 +268,34 @@ function qaByAdAggregatedCreativeRotation(job) {
 
     feedItem['Creative Rotation'] = getDataUtils().creativeRotationType(ad.creativeRotation);
 
+  });
+
+  new FeedProvider('QA').setFeed(feed).save();
+}
+
+/**
+    * Implements the Landing Page QA style
+    */
+function qaLandingPage(job) {
+  if(!job.logs) {
+    job.logs = [];
+  }
+
+  job.logs.push([new Date(), 'Generating QA Report']);
+
+  var feed = [];
+
+  var cmDAO = new CampaignManagerDAO(getProfileId());
+
+  forEach(job.landingPages, function(index, landingPage) {
+    var feedItem = {};
+    feed.push(feedItem);
+
+    feedItem['Landing Page ID'] = landingPage.id;
+    feedItem['Landing Page Name'] = landingPage.name;
+    feedItem['Landing Page URL'] = landingPage.url;
+    feedItem['Campaign ID'] = landingPage.campaign.id;
+    feedItem['Campaign Name'] = landingPage.campaign.name;
   });
 
   new FeedProvider('QA').setFeed(feed).save();

@@ -69,8 +69,6 @@ var IdStore = function(sheetDAO) {
    * Saves store to the sheet
    */
   this.store = function() {
-    console.log('storing store');
-    console.log(store);
     var raw = JSON.stringify(store);
     var values = [];
 
@@ -96,14 +94,12 @@ var IdStore = function(sheetDAO) {
 
     for(var i = 0; i < values[0].length && values[0][i]; i++) {
       raw += values[0][i];
-      console.log(raw);
     }
 
     if(!raw) {
       raw = '{}';
     }
 
-    console.log(raw);
     store = JSON.parse(raw);
   }
 

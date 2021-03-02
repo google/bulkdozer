@@ -836,6 +836,7 @@ var LandingPageLoader = function(cmDAO) {
   this.idField = fields.landingPageId;
   this.listField = 'landingPages';
   this.keys = ['Landing Page ID'];
+  var that = this;
 
   BaseLoader.call(this, cmDAO);
 
@@ -864,6 +865,33 @@ var LandingPageLoader = function(cmDAO) {
     }
 
     return result;
+  }
+
+  /**
+   * @see BaseLoader.fetchItemsToLoad
+   */
+  this.fetchItemsToLoad = function(job) {
+    var itemsToLoad = [];
+
+    forEach(job.campaignIds, function(index, campaignId) {
+      var campaign = cmDAO.get('Campaigns', campaignId);
+
+      if(campaign) {
+        var landingPages = cmDAO.list(that.entity, that.listField, {
+          'campaignIds': campaign.id
+        });
+
+        forEach(landingPages, function(index, landingPage) {
+          landingPage.campaign = campaign;
+        });
+
+        if(landingPages && landingPages.length > 0) {
+          itemsToLoad = itemsToLoad.concat(landingPages);
+        }
+      }
+    });
+
+    return itemsToLoad;
   }
 
   /**
