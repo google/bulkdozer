@@ -19,6 +19,9 @@
 *
 ***************************************************************************/
 
+const DEFAULT_SLEEP = 8 * 1000;
+const DEFAULT_RETRIES = 4;
+
 /**
  * onOpen handler to display Bulkdozer menu
  */
@@ -58,6 +61,63 @@ function forEach(items, func) {
       if(func) {
         func(i, items[i]);
       }
+    }
+  }
+}
+
+/**
+* Given an error raised by an API call, determines if the error has a chance
+* of succeeding if it is retried. A good example of a "retriable" error is
+* rate limit, in which case waiting for a few seconds and trying again might
+* refresh the quota and allow the transaction to go through. This method is
+* desidned to be used by the _retry function.
+*
+* params:
+* error: error to verify
+*
+* returns: true if the error is "retriable", false otherwise
+*/
+function isRetriableError(error) {
+  var retriableErroMessages = [
+      'failed while accessing document with id',
+      'internal error',
+      'user rate limit exceeded',
+      'quota exceeded'
+  ];
+
+  if(error && error.message) {
+    var message = error.message.toLowerCase();
+
+    retriableErroMessages.forEach(function(retriableMessage) {
+      if(message.indexOf(retriableMessage) != -1) {
+        return true;
+      }
+    });
+  }
+
+  return false;
+}
+
+/**
+ * Wrapper to add retries and exponential backoff on API calls
+ *
+ * params:
+ *  fn: function to be invoked, the return of this funcntion is returned
+ *  retries: Number of ties to retry
+ *  sleep: How many milliseconds to sleep, it will be doubled at each retry.
+ *
+ * returns: The return of fn
+ */
+function _retry(fn, retries, sleep) {
+  try {
+    var result = fn();
+    return result;
+  } catch(error) {
+    if(isRetriableError(error) && retries > 0) {
+      Utilities.sleep(sleep);
+      return _retry(fn, retries - 1, sleep * 2);
+    } else {
+      throw error;
     }
   }
 }

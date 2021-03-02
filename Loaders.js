@@ -19,6 +19,10 @@
 *
 ***************************************************************************/
 
+// Declare context object so we can call constructors by name, this is used so
+// we can define which concrete loader to use based on sheet configurations
+var context = this;
+
 /*
  * Gets the profile id from the Store tab
  *
@@ -1345,7 +1349,7 @@ var PlacementLoader = function(cmDAO) {
    * params:
    *  job: the current job
    */
-  function processPricingSchedule(job) {
+  this.processPricingSchedule = function(job) {
     var feedItem = job.feedItem;
     var placement = job.cmObject;
 
@@ -1553,7 +1557,12 @@ var PlacementLoader = function(cmDAO) {
     placement.paymentSource = 'PLACEMENT_AGENCY_PAID';
 
     processActiveViewAndVerification(job);
-    processPricingSchedule(job);
+
+
+    if(job.processPricingSchedule) {
+      this.processPricingSchedule(job);
+    }
+
     processCompatibility(job);
     processSkippability(job);
   }
@@ -1575,10 +1584,112 @@ var PlacementLoader = function(cmDAO) {
     feedItem[fields.siteName] = site.name;
     feedItem[fields.campaignName] = campaign.name;
 
-    pricingSchedulePostProcess(job);
+    if(job.processPricingSchedule) {
+      pricingSchedulePostProcess(job);
+    }
   }
 }
 PlacementLoader.prototype = Object.create(BaseLoader.prototype);
+
+/**
+ * Variant of PlacementEditor specific for the Cost Editor tool, it adds
+ * functionality to parse key values from impression tracker tags, and limits
+ * the Placement fields updated to those related to pricing schedule.
+ */
+var PlacementCostEditorLoader = function(cmDAO) {
+
+  PlacementLoader.call(this, cmDAO);
+
+  /**
+   * @see LandingPageLoader.processPush
+   */
+  this.processPush = function(job) {
+    var feedItem = job.feedItem;
+    var placement = job.cmObject;
+
+    // Handle base fields
+    if(job.processPricingSchedule) {
+      this.processPricingSchedule(job);
+    }
+  }
+
+
+}
+PlacementCostEditorLoader.prototype = Object.create(PlacementLoader.prototype);
+
+/**
+ * Variant of PlacementEditor specific for the Key Values Editor tool, it adds
+ * functionality to parse impression trackers into key value pairs and doesn't
+ * edit fields that are not related to key values editing.
+ */
+var PlacementKeyValuesEditorLoader = function(cmDAO) {
+
+  PlacementLoader.call(this, cmDAO);
+
+  var targetKeys = null;
+
+  function getTargetKeys() {
+    if(!targetKeys) {
+      var raw = getSheetDAO().getValue('Store', 'B3');
+
+      targetKeys = raw.toString().split(',').map(function(elem) {
+        return elem.trim();
+      });
+    }
+
+    return targetKeys;
+  }
+
+  this.processPush = function(job) {
+    var feedItem = job.feedItem;
+    var placement = job.cmObject;
+    var keyValues = null;
+
+    if(feedItem.hasOwnProperty('Impression Tracker') && feedItem['Impression Tracker'] !== '') {
+      var targetKeys = getTargetKeys();
+      var impressionPx = feedItem['Impression Tracker'];
+      var decodedPx = decodeURIComponent(impressionPx);
+      var rex = /<img.*?src=['"](.*?)['"]/; // regex
+
+      try {
+        var tag = rex.exec(decodedPx)[1];
+      } catch (err) {
+        throw err;
+      }
+      var qs = {};
+
+      tag.slice(tag.indexOf('?') + 1).split('&').forEach(function(pair) {
+        var kv = pair.split('=');
+        qs[kv[0]] = kv[1];
+      });
+
+      var keyValues = [];
+      targetKeys.forEach(function(key) {
+        if (qs.hasOwnProperty(key)) {
+          keyValues.push(key + '=' + qs[key])
+        } else {
+          // all values are expected to exist
+          throw new Error('Key name ' + key + ' not found in row ' +
+            feedItem['Placement ID'] + ' impression tracker: ' + tag);
+        }
+      });
+
+      feedItem[fields.placementAdditionalKeyValues] = keyValues.join(';');
+    }
+
+    if(!placement.tagSetting) {
+      placement.tagSetting = {};
+    }
+
+    this.assign(placement.tagSetting, 'additionalKeyValues', feedItem, fields.placementAdditionalKeyValues, false);
+  }
+
+  this.postProcessPush = function(job) {
+    return;
+  }
+
+}
+PlacementKeyValuesEditorLoader.prototype = Object.create(PlacementLoader.prototype);
 
 /**
  * Creative Loader
@@ -2356,26 +2467,18 @@ function doBuildHierarchy(job) {
   return job;
 }
 
-// CM DAO used by all loaders
-
 // Map of loaders used by getLoader
 var loaders;
 function getLoaders() {
-  var cmDAO = new CampaignManagerDAO(getProfileId());
   if(!loaders) {
-    loaders = {
-      'Campaigns': new CampaignLoader(cmDAO),
-      'AdvertiserLandingPages': new LandingPageLoader(cmDAO),
-      'EventTags': new EventTagLoader(cmDAO),
-      'Creatives': new CreativeLoader(cmDAO),
-      'PlacementGroups': new PlacementGroupLoader(cmDAO),
-      'Placements': new PlacementLoader(cmDAO),
-      'Ads': new AdLoader(cmDAO),
-      'PlacementPricingSchedule': new PricingScheduleLoader(cmDAO),
-      'AdCreativeAssignment': new AdCreativeLoader(cmDAO),
-      'AdPlacementAssignment': new AdPlacementLoader(cmDAO),
-      'AdEventTagAssignment': new AdEventTagLoader(cmDAO)
-    }
+    loaders = {};
+    var cmDAO = new CampaignManagerDAO(getProfileId());
+    var entityConfigs = getSheetDAO().sheetToDict('Entity Configs');
+
+    entityConfigs.forEach(function(entityConfig) {
+      loaders[entityConfig['CM Name']] =
+          new context[entityConfig['Loader']](cmDAO);
+    });
   }
 
   return loaders;

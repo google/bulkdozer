@@ -352,7 +352,9 @@ var SheetDAO = function() {
     if(!result) {
       var range = getRange(sheetName, range);
 
-      result = range.getValues();
+      var result = _retry(function() {
+        return range.getValues();
+      }, 3, 2 * 1000);
 
       cachePut(sheetName, 'values' + range, result);
     }
@@ -390,7 +392,9 @@ var SheetDAO = function() {
 
     sheetRange.clear();
 
-    sheetRange.setValues(values);
+    var response = _retry(function() {
+      sheetRange.setValues(values);
+    }, 3, 2 * 1000);
   }
 
   /**

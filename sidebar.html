@@ -245,6 +245,9 @@ function identifyItemsToLoad(entityConfigs) {
 
   if(checkEntityMode(entityConfigs, 'Placement', 'READ')) {
     jobs.push({ 'entity': 'Placements' });
+  }
+
+  if(checkEntityMode(entityConfigs, 'Pricing Schedule', 'READ')) {
     jobs.push({ 'entity': 'PlacementPricingSchedule' });
   }
 
@@ -1067,6 +1070,7 @@ function pushToCM() {
       if(checkEntityMode(entityConfigs, 'Placement', 'WRITE')) {
         jobs.push({
           'entity': 'Placements',
+          'processPricingSchedule': checkEntityMode(entityConfigs, 'Pricing Schedule', 'WRITE'),
           'preFetchConfigs': [
             {
               'entity': 'Campaigns',

@@ -31,8 +31,6 @@ var CampaignManagerDAO = function(profileId) {
   // This means that the total wait time in the worst case scenario is 248
   // seconds, or just over 4 minutes, ensuring the retries will be exhausted
   // within the 5 minutes runtime
-  const DEFAULT_SLEEP = 8 * 1000;
-  const DEFAULT_RETRIES = 4;
   const CACHE_EXPIRATION = 21600;
 
   var cache = getCache();
@@ -53,54 +51,6 @@ var CampaignManagerDAO = function(profileId) {
     }
 
     return result;
-  }
-
-  /**
-  * Given an error raised by an API call, determines if the error has a chance
-  * of succeeding if it is retried. A good example of a "retriable" error is
-  * rate limit, in which case waiting for a few seconds and trying again might
-  * refresh the quota and allow the transaction to go through. This method is
-  * desidned to be used by the _retry function.
-  *
-  * params:
-  * error: error to verify
-  *
-  * returns: true if the error is "retriable", false otherwise
-  */
-  function isRetriableError(error) {
-    if(error && error.message) {
-      var message = error.message.toLowerCase();
-
-      return message.indexOf('internal error') != -1 ||
-          message.indexOf('user rate limit exceeded') != -1 ||
-          message.indexOf('quota exceeded') != -1;
-    }
-
-    return false;
-  }
-
-  /**
-   * Wrapper to add retries and exponential backoff on API calls
-   *
-   * params:
-   *  fn: function to be invoked, the return of this funcntion is returned
-   *  retries: Number of ties to retry
-   *  sleep: How many milliseconds to sleep, it will be doubled at each retry.
-   *
-   * returns: The return of fn
-   */
-  function _retry(fn, retries, sleep) {
-    try {
-      var result = fn();
-      return result;
-    } catch(error) {
-      if(isRetriableError(error) && retries > 0) {
-        Utilities.sleep(sleep);
-        return _retry(fn, retries - 1, sleep * 2);
-      } else {
-        throw error;
-      }
-    }
   }
 
   /**
