@@ -106,6 +106,8 @@ function cmLoad(job) {
  *  job.parentItemIds ids of parent items to load child items for
  */
 function _cmFetch(job) {
+  console.log("fetching: ");
+  console.log(job.entity);
   var loader = getLoader(job.entity);
 
   job.itemsToLoad = loader.fetchItemsToLoad(job);

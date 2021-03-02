@@ -71,8 +71,9 @@ var CampaignManagerDAO = function(profileId) {
     if(error && error.message) {
       var message = error.message.toLowerCase();
 
-      return message.indexOf('user rate limit exceeded') != -1 ||
-      message.indexOf('quota exceeded') != -1;
+      return message.indexOf('internal error') != -1 ||
+          message.indexOf('user rate limit exceeded') != -1 ||
+          message.indexOf('quota exceeded') != -1;
     }
 
     return false;

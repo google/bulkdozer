@@ -535,7 +535,16 @@ function qaCMLoad() {
     return new Runner().run('initializeJob', [{}]).then(function(result) {
       console.log('Starting job: ' + result[0].jobId);
 
-      return identifyItemsToLoad();
+    }).then(function(result) {
+      return new Runner().run('getEntityConfigs', [{}]);
+    }).then(function(result) {
+      var entityConfigs = {};
+
+      if(result.length > 0 && result[0].entityConfigs) {
+        entityConfigs = result[0].entityConfigs
+      }
+
+      return identifyItemsToLoad(entityConfigs);
     }).then(function(result) {
       return new Runner().run('clear', [{
         'sheetName': 'QA',
