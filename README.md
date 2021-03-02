@@ -3,6 +3,7 @@
 # Bulkdozer Lite
 
 -   [Introduction](#introduction) <br/>
+-   [Installation](#installation) <br/>
 -   [Quickstart](#quickstart) <br/>
 -   [Terms and Conditions](#terms_and_conditions) <br/>
 -   [Support](#support) <br/>
@@ -37,6 +38,16 @@ main Bulkdozer version, and by using any of its functionality you agree with
 these terms, please see below.
 
 [Back to top](#top_page)
+
+<a name="installation"></a>
+
+## Installation
+
+Use the links below to navigate to each one of the tools available. Refer to the
+"Instructions" tab of each tool for details on how to deploy and use them.
+
+- [Event Tag QA
+  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
 
 <a name="quickstart"></a>
 
