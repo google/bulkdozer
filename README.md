@@ -48,6 +48,8 @@ Use the links below to navigate to each one of the tools available. Refer to the
 
 - [Bulkdozer
   Lite](https://docs.google.com/spreadsheets/d/14NkTLqoRO37uTrhWiG8H7kp3yhNEmuOujy_qSTS4YDo)
+- [QA
+  Tools](https://docs.google.com/spreadsheets/d/10b00Gu2n2exBkeGKoVK67u5GPf88eOzma3kWXO14XMQ)
 - [Event Tag QA
   Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
 
