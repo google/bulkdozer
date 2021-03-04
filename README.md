@@ -52,6 +52,12 @@ Use the links below to navigate to each one of the tools available. Refer to the
   Tools](https://docs.google.com/spreadsheets/d/10b00Gu2n2exBkeGKoVK67u5GPf88eOzma3kWXO14XMQ)
 - [Event Tag QA
   Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
+- [Landing Page QA Tool &
+  Editor](https://docs.google.com/spreadsheets/d/15b5rHLZJq5-ddnbsyfOzuK2I3oGeSzxKjL-qdwwfnn8)
+- [Key Value
+  Editor](https://docs.google.com/spreadsheets/d/1OnYlrGXN4bck9y4xnfzbr8WtEtINMRdyxjbV4wlOTn8)
+- [Cost
+  Editor](https://docs.google.com/spreadsheets/d/1o91F9acD1ACPBhXIufgDz8QfOuEU_GLLLBTT1Ok5f8w)
 
 <a name="quickstart"></a>
 

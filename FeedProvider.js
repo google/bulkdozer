@@ -167,8 +167,6 @@ var FeedProvider = function(tabName, keys) {
       });
     }
 
-    console.log('this is the feed that was set:');
-    console.log(_feed.length);
     return this;
   }
 

@@ -206,9 +206,9 @@ function disableJobs(jobs) {
  *  returns false.
  */
 function checkEntityMode(entityConfigs, entity, mode) {
-  if(entityConfigs && entityConfigs[entity]) {
+  if(entityConfigs && entityConfigs[entity].indexOf('WRITE') != -1) {
       return true;
-  } else if(entityConfigs[entity] == 'READ') {
+  } else if(entityConfigs[entity].indexOf('READ') != -1) {
     if(mode == 'READ') {
       return true;
     }
@@ -567,41 +567,61 @@ function qaCMLoad() {
       logger.log(jobs);
 
       var jobsMap = getJobsMap(jobs);
-      disableJobs(jobs);
 
-      jobsMap['EventTags'].run = true;
+      if(jobsMap['EventTags']) {
+        disableJobs(jobs);
+        jobsMap['EventTags'].run = true; // the problem is in this line
 
-      jobsMap['EventTags'].adIds = [];
-      forEach(jobsMap['Ads'].itemsToLoad, function(index, item) {
-        jobsMap['EventTags'].adIds.push(item.id);
-      });
+        jobsMap['EventTags'].adIds = [];
+        forEach(jobsMap['Ads'].itemsToLoad, function(index, item) {
+          jobsMap['EventTags'].adIds.push(item.id);
+        });
 
-      jobsMap['EventTags'].campaignIds = [];
-      forEach(jobsMap['Campaigns'].itemsToLoad, function(index, item) {
-        jobsMap['EventTags'].campaignIds.push(item.id);
-      });
+        jobsMap['EventTags'].campaignIds = [];
+        forEach(jobsMap['Campaigns'].itemsToLoad, function(index, item) {
+          jobsMap['EventTags'].campaignIds.push(item.id);
+        });
 
-      jobsMap['EventTags'].preFetchConfigs = [
-        {
-          'entity': 'Campaigns',
-          'listName': 'campaigns',
-          'filterName': 'ids',
-          'fieldName': 'campaignId'
-        }
-      ];
+        jobsMap['EventTags'].preFetchConfigs = [
+          {
+            'entity': 'Campaigns',
+            'listName': 'campaigns',
+            'filterName': 'ids',
+            'fieldName': 'campaignId'
+          }
+        ];
 
-      return new Runner().run('cmFetch', jobs);
+        return new Runner().run('cmFetch', jobs);
+      } else {
+        return jobs;
+      }
     }).then(function(jobs) {
       setStatus('Generating QA Report');
+
       var jobsMap = getJobsMap(jobs);
-      var hierarchyJob = {
-        'campaigns': jobsMap['Campaigns'].itemsToLoad,
-        'placements': jobsMap['Placements'].itemsToLoad,
-        'placementGroups': jobsMap['PlacementGroups'].itemsToLoad,
-        'ads': jobsMap['Ads'].itemsToLoad,
-        'landingPages': jobsMap['AdvertiserLandingPages'].itemsToLoad,
-        'creatives': jobsMap['Creatives'].itemsToLoad,
-        'eventTags': jobsMap['EventTags'].itemsToLoad
+
+      var hierarchyJob = {};
+
+      if(jobsMap['Campaigns']) {
+        hierarchyJob['campaigns'] = jobsMap['Campaigns'].itemsToLoad;
+      }
+      if(jobsMap['Placements']) {
+        hierarchyJob['placements'] = jobsMap['Placements'].itemsToLoad;
+      }
+      if(jobsMap['PlacementGroups']) {
+        hierarchyJob['placementGroups'] = jobsMap['PlacementGroups'].itemsToLoad;
+      }
+      if(jobsMap['Ads']) {
+        hierarchyJob['ads'] = jobsMap['Ads'].itemsToLoad;
+      }
+      if(jobsMap['AdvertiserLandingPages']) {
+        hierarchyJob['landingPages'] = jobsMap['AdvertiserLandingPages'].itemsToLoad;
+      }
+      if(jobsMap['Creatives']) {
+        hierarchyJob['creatives'] = jobsMap['Creatives'].itemsToLoad;
+      }
+      if(jobsMap['EventTags']) {
+        hierarchyJob['eventTags'] = jobsMap['EventTags'].itemsToLoad;
       }
 
       return new Runner().run('qa', [hierarchyJob]);
@@ -945,7 +965,6 @@ function pushToCM() {
         }
       });
     }).then(function(result) {
-      console.log(result);
       var idMap = result.idMap;
       var entityConfigs = {};
 

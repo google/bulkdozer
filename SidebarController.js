@@ -138,6 +138,8 @@ function _qa(job) {
 
   if(qaMode == 'Aggregated Creative Rotation') {
     qaByAdAggregatedCreativeRotation(job);
+  } else if (qaMode == 'Landing Page') {
+    qaLandingPage(job);
   } else {
     qaByCreativeRotation(job);
   }
