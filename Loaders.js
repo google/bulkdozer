@@ -19,10 +19,6 @@
 *
 ***************************************************************************/
 
-// Declare context object so we can call constructors by name, this is used so
-// we can define which concrete loader to use based on sheet configurations
-var context = this;
-
 /*
  * Gets the profile id from the Store tab
  *
@@ -786,6 +782,7 @@ var CampaignLoader = function(cmDAO) {
     feedItem[fields.landingPageName] = landingPage.name;
     feedItem[fields.campaignStartDate] = campaign.startDate;
     feedItem[fields.campaignEndDate] = campaign.endDate;
+    feedItem[fields.billingInvoiceCode] = campaign.billingInvoiceCode;
 
     return feedItem;
   };
@@ -1786,17 +1783,31 @@ var CreativeLoader = function(cmDAO) {
     if(feedItem[fields.creativeName]) {
       creative.name = feedItem[fields.creativeName];
     }
+
+    if(feedItem[fields.advertiserId]) {
+      creative.advertiserId = feedItem[fields.advertiserId];
+    }
+
+    if(feedItem[fields.creativeType]) {
+      creative.type = feedItem[fields.creativeType];
+    }
+
+    if(feedItem[fields.creativeActive]) {
+      creative.active = feedItem[fields.creativeActive];
+    }
   }
 
   /**
    * @see CampaignLoader.postProcessPush
    */
   this.postProcessPush = function(job) {
-    var campaign = cmDAO.get('Campaigns', job.feedItem[fields.campaignId]);
+    if(job.feedItem[fields.campaignId]) {
+      var campaign = cmDAO.get('Campaigns', job.feedItem[fields.campaignId]);
 
-    cmDAO.associateCreativeToCampaign(campaign.id, job.cmObject.id);
+      cmDAO.associateCreativeToCampaign(campaign.id, job.cmObject.id);
 
-    job.feedItem[fields.campaignName] = campaign.name;
+      job.feedItem[fields.campaignName] = campaign.name;
+    }
   }
 }
 CreativeLoader.prototype = Object.create(BaseLoader.prototype);

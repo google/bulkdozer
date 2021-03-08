@@ -206,11 +206,13 @@ function disableJobs(jobs) {
  *  returns false.
  */
 function checkEntityMode(entityConfigs, entity, mode) {
-  if(entityConfigs && entityConfigs[entity].indexOf('WRITE') != -1) {
-      return true;
-  } else if(entityConfigs[entity].indexOf('READ') != -1) {
-    if(mode == 'READ') {
-      return true;
+  if(entityConfigs && entityConfigs[entity]) {
+    if(entityConfigs[entity].indexOf('WRITE') != -1) {
+        return true;
+    } else if(entityConfigs[entity].indexOf('READ') != -1) {
+      if(mode == 'READ') {
+        return true;
+      }
     }
   }
 

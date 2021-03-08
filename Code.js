@@ -22,6 +22,11 @@
 const DEFAULT_SLEEP = 8 * 1000;
 const DEFAULT_RETRIES = 4;
 
+// Declare context object so we can call functions by name, this enables
+// configuration based functionality, so the tool behaves according to settings
+// defined in the sheet.
+var context = this;
+
 /**
  * onOpen handler to display Bulkdozer menu
  */

@@ -41,6 +41,7 @@ var fields = {
   'campaignName': 'Campaign Name',
   'campaignStartDate': 'Campaign Start Date',
   'campaignEndDate': 'Campaign End Date',
+  'billingInvoiceCode': 'Billing Invoice Code',
   
   // Event Tag
   'eventTagId': 'Event Tag ID',
@@ -89,6 +90,7 @@ var fields = {
   'creativeType': 'Creative Type',
   'thirdPartyUrlType': '3P URL Type',
   'thirdPartyUrl': '3P URL',
+  'creativeActive': 'Creative Active',
 
   // Ad
   'creativeRotation': 'Creative Rotation',
