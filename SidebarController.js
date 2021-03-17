@@ -134,15 +134,9 @@ function cmFetch(job) {
 function _qa(job) {
   doBuildHierarchy(job);
 
-  var qaMode = getSheetDAO().getValue('Store', 'B3');
+  var qaFunctionName = getSheetDAO().getValue('Store', 'B3');
 
-  if(qaMode == 'Aggregated Creative Rotation') {
-    qaByAdAggregatedCreativeRotation(job);
-  } else if (qaMode == 'Landing Page') {
-    qaLandingPage(job);
-  } else {
-    qaByCreativeRotation(job);
-  }
+  context[qaFunctionName](job);
 
   // This is needed for large campaigns, it is too much data to transmit to the
   // front end

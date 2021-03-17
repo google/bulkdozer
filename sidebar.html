@@ -206,11 +206,13 @@ function disableJobs(jobs) {
  *  returns false.
  */
 function checkEntityMode(entityConfigs, entity, mode) {
-  if(entityConfigs && entityConfigs[entity].indexOf('WRITE') != -1) {
-      return true;
-  } else if(entityConfigs[entity].indexOf('READ') != -1) {
-    if(mode == 'READ') {
-      return true;
+  if(entityConfigs && entityConfigs[entity]) {
+    if(entityConfigs[entity].indexOf('WRITE') != -1) {
+        return true;
+    } else if(entityConfigs[entity].indexOf('READ') != -1) {
+      if(mode == 'READ') {
+        return true;
+      }
     }
   }
 
@@ -245,6 +247,9 @@ function identifyItemsToLoad(entityConfigs) {
 
   if(checkEntityMode(entityConfigs, 'Placement', 'READ')) {
     jobs.push({ 'entity': 'Placements' });
+  }
+
+  if(checkEntityMode(entityConfigs, 'Pricing Schedule', 'READ')) {
     jobs.push({ 'entity': 'PlacementPricingSchedule' });
   }
 
@@ -1067,6 +1072,7 @@ function pushToCM() {
       if(checkEntityMode(entityConfigs, 'Placement', 'WRITE')) {
         jobs.push({
           'entity': 'Placements',
+          'processPricingSchedule': checkEntityMode(entityConfigs, 'Pricing Schedule', 'WRITE'),
           'preFetchConfigs': [
             {
               'entity': 'Campaigns',
