@@ -43,6 +43,10 @@ function include(filename) {
 function _clear(job) {
   var sheetDAO = new SheetDAO();
 
+  console.log('clearing and wiping');
+  console.log(job.sheetName);
+  console.log(job.range);
+
   sheetDAO.clear(job.sheetName, job.range);
 
   return job;

@@ -420,6 +420,7 @@ function loadFromCM() {
 
       return identifyItemsToLoad(entityConfigs);
     }).then(function(jobs) {
+      console.log(jobs);
       return logger.log(jobs);
     }).then(function(jobs) {
       setStatus('Loading main entities from CM');
@@ -773,7 +774,7 @@ function saveIdMap(idMap) {
     "run": true
   }
 
-  new Runner().run('saveIdMap', [job]);
+  return new Runner().run('saveIdMap', [job]);
 }
 
 /**
@@ -790,14 +791,13 @@ function postProcessEntityPush(jobs) {
   return updateFeed(jobs).then(function(result) {
     var idMap = mergeIdMaps(jobs);
 
-    saveIdMap(idMap);
-
     flushLogs();
 
-    return new Promise(function(resolve, reject) {
-      resolve(idMap);
+    return saveIdMap(idMap).then(function(result) {
+      return new Promise(function(resolve, reject) {
+        resolve(idMap);
+      });
     });
-
   });
 }
 
@@ -922,7 +922,7 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
  *  jobsMap: jobs map keyed by entity with jobs list
  *
  * returns:
- *  true if it was a clean run (all jobs' status are COMPLETE), false otherwise
+ *  List with failed jobs, if the list is empty it was a clean run and all job completed successfully
  */
 function getFailedJobs(jobsMap) {
 
@@ -931,11 +931,15 @@ function getFailedJobs(jobsMap) {
 
   for(var i = 0; i < keys.length; i++) {
     var key = keys[i];
+    var entity = jobsMap[key];
 
-    for(var j = 0; j < jobsMap[key].length; j++) {
-      var job = jobsMap[key][j];
-      if(job.status != 'COMPLETE') {
-        result.push(job);
+    if(entity.jobs) {
+      for(var j = 0; j < entity.jobs.length; j++) {
+        var job = entity.jobs[j];
+
+        if(job.status != 'COMPLETE') {
+          result.push(job);
+        }
       }
     }
   }
@@ -1127,14 +1131,15 @@ function pushToCM() {
     }).then(function(jobs) {
       toggleEnabledButtons();
 
+      console.log(jobs);
+
       setStatus('Ready');
 
       log('Done, clean run', true);
 
       return new Runner().run('clear', [{
         'sheetName': 'Store',
-        'range': 'A1:Z1',
-        'run': true
+        'range': 'A1:AZ1'
       }]);
     }).catch(function(error) {
       toggleEnabledButtons();

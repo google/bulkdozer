@@ -2079,9 +2079,6 @@ var AdLoader = function(cmDAO) {
     }
 
     // Handle creative assignment
-    console.log('____________________');
-    console.log(job);
-    console.log('____________________');
     if(job.processCreativeAssignments) {
       processRotationStrategy(job);
       processCreativeAssignments(job);
