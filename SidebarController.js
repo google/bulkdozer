@@ -145,6 +145,10 @@ function _qa(job) {
   // This is needed for large campaigns, it is too much data to transmit to the
   // front end
   job.hierarchy = [];
+  job.campaigns = [];
+  job.placements = [];
+  job.placementGroups = [];
+  job.ads = [];
 
   return job;
 }
