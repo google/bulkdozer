@@ -420,7 +420,6 @@ function loadFromCM() {
 
       return identifyItemsToLoad(entityConfigs);
     }).then(function(jobs) {
-      console.log(jobs);
       return logger.log(jobs);
     }).then(function(jobs) {
       setStatus('Loading main entities from CM');
@@ -1130,8 +1129,6 @@ function pushToCM() {
       return orchestratePush(jobs, idMap[0].idMap, jobsMap, 0);
     }).then(function(jobs) {
       toggleEnabledButtons();
-
-      console.log(jobs);
 
       setStatus('Ready');
 

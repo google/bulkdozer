@@ -48,6 +48,15 @@ var DataUtils = function() {
   var dateFormat = getSheetDAO().getValue('Store', 'B7');
   var dateTimeFormat = getSheetDAO().getValue('Store', 'B8');
 
+  /**
+   * Given a creative rotation object from the API returns the value that
+   * represents that rotation in the feed and matches the CM UI
+   *
+   * params: creativeRotation: object with the creative rotation details from CM
+   *
+   * returns: String containing the string representation of the rotation and
+   * strategy
+   */
   this.creativeRotationType = function(creativeRotation) {
     if (creativeRotation) {
       if (creativeRotation.type == 'CREATIVE_ROTATION_TYPE_SEQUENTIAL' &&
@@ -2399,7 +2408,6 @@ function doBuildHierarchy(job) {
 
   var campaignMap = {};
   forEach(job.campaigns, function(index, campaign) {
-    console.log('campaign:' + campaign.id);
     job.hierarchy.push(campaign);
 
     campaign.placements = [];
@@ -2410,7 +2418,6 @@ function doBuildHierarchy(job) {
 
   var pgMap = {};
   forEach(job.placementGroups, function(index, placementGroup) {
-    console.log('placementGroup:' + placementGroup.id);
     placementGroup.placements = [];
 
     pgMap[placementGroup.id] = placementGroup;
@@ -2422,7 +2429,6 @@ function doBuildHierarchy(job) {
 
   var placementMap = [];
   forEach(job.placements, function(index, placement) {
-    console.log('placement:' + placement.id);
 
     placement.ads = [];
     if(placement.placementGroupId && pgMap[placement.placementGroupId]) {
@@ -2435,7 +2441,6 @@ function doBuildHierarchy(job) {
   });
 
   forEach(job.ads, function(index, ad) {
-    console.log('ad:' + ad.id);
 
     forEach(ad.placementAssignments, function(index, assignment) {
       if(placementMap[assignment.placementId]) {
@@ -2451,7 +2456,6 @@ function doBuildHierarchy(job) {
     ad.weightTotal = 0;
     if(ad.creativeRotation && ad.creativeRotation.creativeAssignments) {
       forEach(ad.creativeRotation.creativeAssignments, function(index, assignment) {
-        console.log('creative rotation');
         ad.creatives.push(assignment);
 
         if(assignment.weight) {
