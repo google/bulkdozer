@@ -60,6 +60,8 @@ Use the links below to navigate to each one of the tools available. Refer to the
   Editor](https://docs.google.com/spreadsheets/d/1OnYlrGXN4bck9y4xnfzbr8WtEtINMRdyxjbV4wlOTn8)
 - [Cost
   Editor](https://docs.google.com/spreadsheets/d/1o91F9acD1ACPBhXIufgDz8QfOuEU_GLLLBTT1Ok5f8w)
+- [Tracking Creative
+  Loader](https://docs.google.com/spreadsheets/d/1I4xftgpz2-S1vpaP80sqhgZDodDy09sVgxBYopyCPiA)
 
 
 <a name="quickstart"></a>

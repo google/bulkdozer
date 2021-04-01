@@ -43,6 +43,22 @@ function getActiveOnlyFlag() {
   return flag;
 }
 
+/**
+ *
+ * Gets the default creative type configuration from the store tab
+ *
+ * returns: String with the value from the default creative type
+ */
+var defaultCreativeType = null;
+
+function getDefaultCreativeType() {
+  if(defaultCreativeType == null) {
+    defaultCreativeType = getSheetDAO().getValue('Store', 'B6');
+  }
+
+  return defaultCreativeType;
+}
+
 var DataUtils = function() {
   var timezone = getSheetDAO().getValue('Store', 'B6');
   var dateFormat = getSheetDAO().getValue('Store', 'B7');
@@ -764,7 +780,6 @@ var CampaignLoader = function(cmDAO) {
   this.tabName = ['Campaign', 'QA'];
   this.idField = fields.campaignId;
   this.listField = 'campaigns';
-  this.keys = ['Campaign ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -845,7 +860,6 @@ var LandingPageLoader = function(cmDAO) {
   this.tabName = ['Landing Page', 'QA'];
   this.idField = fields.landingPageId;
   this.listField = 'landingPages';
-  this.keys = ['Landing Page ID'];
   var that = this;
 
   BaseLoader.call(this, cmDAO);
@@ -1111,7 +1125,6 @@ var PlacementGroupLoader = function(cmDAO) {
   this.tabName = ['Placement Group', 'QA'];
   this.idField = fields.placementGroupId;
   this.listField = 'placementGroups';
-  this.keys = ['Placement Group ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1204,7 +1217,6 @@ var PlacementLoader = function(cmDAO) {
   this.tabName = ['Placement', 'QA'];
   this.idField = fields.placementId;
   this.listField = 'placements';
-  this.keys = ['Placement ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1706,7 +1718,6 @@ var CreativeLoader = function(cmDAO) {
   this.tabName = ['Creative', 'QA'];
   this.idField = fields.creativeId;
   this.listField = 'creatives';
-  this.keys = ['Creative ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -1775,8 +1786,6 @@ var CreativeLoader = function(cmDAO) {
 
     feedItem[fields.creativeId] = creative.id;
     feedItem[fields.creativeName] = creative.name;
-    feedItem[fields.creativeType] =
-        creative.type == 'INSTREAM_VIDEO' ? 'VIDEO' : 'DISPLAY';
     feedItem[fields.advertiserId] = creative.advertiserId;
 
     return feedItem;
@@ -1797,8 +1806,8 @@ var CreativeLoader = function(cmDAO) {
       creative.advertiserId = feedItem[fields.advertiserId];
     }
 
-    if(feedItem[fields.creativeType]) {
-      creative.type = feedItem[fields.creativeType];
+    if(feedItem[fields.creativeType] || getDefaultCreativeType()) {
+      creative.type = feedItem[fields.creativeType] || getDefaultCreativeType();
     }
 
     if(feedItem[fields.creativeActive]) {
@@ -1831,7 +1840,6 @@ var AdLoader = function(cmDAO) {
   this.tabName = ['Ad', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
-  this.keys = ['Ad ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -2185,7 +2193,6 @@ var AdPlacementLoader = function(cmDAO) {
   this.tabName = ['Ad Placement Assignment', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
-  this.keys = ['Ad ID', 'Placement ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -2225,7 +2232,6 @@ var AdCreativeLoader = function(cmDAO) {
   this.tabName = ['Ad Creative Assignment', 'QA'];
   this.idField = fields.adId;
   this.listField = 'ads';
-  this.keys = ['Ad ID', 'Creative ID'];
 
   BaseLoader.call(this, cmDAO);
 
@@ -2488,8 +2494,9 @@ function getLoaders() {
     var entityConfigs = getSheetDAO().sheetToDict('Entity Configs');
 
     entityConfigs.forEach(function(entityConfig) {
-      loaders[entityConfig['CM Name']] =
-          new context[entityConfig['Loader']](cmDAO);
+      var loader = new context[entityConfig['Loader']](cmDAO);
+      loader.keys = entityConfig['Keys'].split(',');
+      loaders[entityConfig['CM Name']] = loader;
     });
   }
 
