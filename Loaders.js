@@ -1771,6 +1771,36 @@ var CreativeLoader = function(cmDAO) {
   }
 
   /**
+   * Logic to process creative size, considering the field in the feed to have
+   * <width>x<height> format.
+   *
+   * params:
+   *  creative: CM creative
+   *  sizeText: e.g.: 300x600, 800x160
+   */
+  function processSize(creative, sizeText) {
+    var rawSize = sizeText;
+    var found = false;
+
+    if(rawSize && rawSize.toLowerCase().indexOf('x') != -1) {
+      var splitSize = rawSize.toLowerCase().trim().split('x');
+      width = parseInt(splitSize[0]);
+      height = parseInt(splitSize[1]);
+
+      var sizes = cmDAO.getSize(width, height);
+
+      if(sizes.length > 0) {
+        creative.size = sizes[0];
+        found = true;
+      }
+    }
+
+    if(!found) {
+      creative.size = {'width': width, 'height': height};
+    }
+  }
+
+  /**
    * @see CampaignLoader.mapFeed
    */
   this.mapFeed = function(creative) {
@@ -1812,6 +1842,14 @@ var CreativeLoader = function(cmDAO) {
 
     if(feedItem[fields.creativeActive]) {
       creative.active = feedItem[fields.creativeActive];
+    }
+
+    if(feedItem[fields.redirectUrl] || feedItem[fields.redirectUrl] === "") {
+      creative.redirectUrl = feedItem[fields.redirectUrl];
+    }
+
+    if(feedItem[fields.creativeSize] || feedItem[fields.creativeSize] === "") {
+      processSize(creative, feedItem[fields.creativeSize]);
     }
   }
 
