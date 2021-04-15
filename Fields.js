@@ -91,6 +91,8 @@ var fields = {
   'thirdPartyUrlType': '3P URL Type',
   'thirdPartyUrl': '3P URL',
   'creativeActive': 'Creative Active',
+  'redirectUrl': 'Redirect URL',
+  'creativeSize': 'Creative Size',
 
   // Ad
   'creativeRotation': 'Creative Rotation',
