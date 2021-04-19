@@ -87,20 +87,34 @@ function isRetriableError(error) {
       'failed while accessing document with id',
       'internal error',
       'user rate limit exceeded',
-      'quota exceeded'
+      'quota exceeded',
+      '502'
   ];
 
-  if(error && error.message) {
-    var message = error.message.toLowerCase();
+  var message = null;
+  var result = false;
 
+  if(error) {
+    if(typeof(error) == 'string') {
+      message = error;
+    } else if(error.message) {
+      message = error.message;
+    } else if(error.details && error.details.message) {
+      message = error.details.message;
+    }
+
+    message = message ? message.toLowerCase() : null;
+  }
+
+  if(message) {
     retriableErroMessages.forEach(function(retriableMessage) {
       if(message.indexOf(retriableMessage) != -1) {
-        return true;
+        result = true;
       }
     });
   }
 
-  return false;
+  return result;
 }
 
 /**
