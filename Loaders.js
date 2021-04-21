@@ -1792,12 +1792,11 @@ var CreativeLoader = function(cmDAO) {
       if(sizes.length > 0) {
         creative.size = sizes[0];
         found = true;
+      } else {
+        creative.size = {'width': width, 'height': height};
       }
     }
 
-    if(!found) {
-      creative.size = {'width': width, 'height': height};
-    }
   }
 
   /**
