@@ -1817,6 +1817,20 @@ var CreativeLoader = function(cmDAO) {
     feedItem[fields.creativeName] = creative.name;
     feedItem[fields.advertiserId] = creative.advertiserId;
 
+    feedItem[fields.creativeType] = creative.type;
+
+    if(creative.size) {
+      feedItem[fields.creativeSize] = `${creative.size.width}x${creative.size.height}`;
+    }
+
+    if(creative.redirectUrl) {
+      feedItem[fields.redirectUrl] = creative.redirectUrl;
+    }
+
+    if(creative.htmlCode) {
+      feedItem[fields.htmlCode] = creative.htmlCode;
+    }
+
     return feedItem;
   }
 
@@ -1826,6 +1840,7 @@ var CreativeLoader = function(cmDAO) {
   this.processPush = function(job) {
     var creative = job.cmObject;
     var feedItem = job.feedItem;
+    console.log(feedItem);
 
     if(feedItem[fields.creativeName]) {
       creative.name = feedItem[fields.creativeName];
@@ -1849,6 +1864,10 @@ var CreativeLoader = function(cmDAO) {
 
     if(feedItem[fields.creativeSize] || feedItem[fields.creativeSize] === "") {
       processSize(creative, feedItem[fields.creativeSize]);
+    }
+
+    if(feedItem[fields.htmlCode] || feedItem[fields.htmlCode] === "") {
+      creative.htmlCode = feedItem[fields.htmlCode];
     }
   }
 

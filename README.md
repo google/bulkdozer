@@ -47,21 +47,28 @@ Use the links below to navigate to each one of the tools available. Refer to the
 "Instructions" tab of each tool for details on how to deploy and use them.
 
 - [Bulkdozer
-  Lite](https://docs.google.com/spreadsheets/d/1ZCKU0s_50CpvP__T30mpooTRDbyJBZMIlctimwk-WuU)
+  Lite
+  0.35](https://docs.google.com/spreadsheets/d/11Wn5vaOVu7qDfFO3ES3SILrpphUYP42W_vs2rEiIzfQ)
 - [QA
-  Tools](https://docs.google.com/spreadsheets/d/10b00Gu2n2exBkeGKoVK67u5GPf88eOzma3kWXO14XMQ)
+  Tools
+  0.14](https://docs.google.com/spreadsheets/d/1dAoERvFTaTyrNXv88MLIiKnU1NvSsNYc0oKf7Tm6zwo)
 - [Event Tag QA
-  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
+  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
 - [Event Tag
-  Editor](https://docs.google.com/spreadsheets/d/1Y3qiP1Y3hONgsEgCIIBVWZzDwETOdl7TcwTLhsOj6FE)
+  Editor
+  0.3](https://docs.google.com/spreadsheets/d/1voIR4LjzqIf59_XCSE6haKqTubCuwTa8cVvjRp6cOws)
 - [Landing Page QA Tool &
-  Editor](https://docs.google.com/spreadsheets/d/15b5rHLZJq5-ddnbsyfOzuK2I3oGeSzxKjL-qdwwfnn8)
+  Editor
+  0.4](https://docs.google.com/spreadsheets/d/1wgv6trSsjizTdpNffz_FOlkBVd9b1q4XS3WL-x3h0Ks)
 - [Key Value
-  Editor](https://docs.google.com/spreadsheets/d/1OnYlrGXN4bck9y4xnfzbr8WtEtINMRdyxjbV4wlOTn8)
+  Editor
+  0.3](https://docs.google.com/spreadsheets/d/1yqzHCypKBPup_VwdQ1Gt5nipzIBX4uL1MzWU9-YQ8Yw)
 - [Cost
-  Editor](https://docs.google.com/spreadsheets/d/1o91F9acD1ACPBhXIufgDz8QfOuEU_GLLLBTT1Ok5f8w)
+  Editor
+  0.3](https://docs.google.com/spreadsheets/d/1LR_rOz_mJa-hnxqumfnKb9SLlVX-vAU5fUzBPtN0cTk)
 - [Creative
-  Loader](https://docs.google.com/spreadsheets/d/1ZpzKt0YIq0GIe4wKC-7xPBvWw9uTQ9RrHIwcBlhAKao)
+  Loader
+  0.4](https://docs.google.com/spreadsheets/d/1CBj6xygn3lslV2HPKutvUVcJJJ4cXeUKI83lW8my1Mc)
 
 
 <a name="quickstart"></a>
