@@ -53,7 +53,7 @@ Use the links below to navigate to each one of the tools available. Refer to the
   Tools
   0.14](https://docs.google.com/spreadsheets/d/1dAoERvFTaTyrNXv88MLIiKnU1NvSsNYc0oKf7Tm6zwo)
 - [Event Tag QA
-  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A)
+  Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
 - [Event Tag
   Editor
   0.3](https://docs.google.com/spreadsheets/d/1voIR4LjzqIf59_XCSE6haKqTubCuwTa8cVvjRp6cOws)
