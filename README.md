@@ -48,27 +48,27 @@ Use the links below to navigate to each one of the tools available. Refer to the
 
 - [Bulkdozer
   Lite
-  0.35](https://docs.google.com/spreadsheets/d/11Wn5vaOVu7qDfFO3ES3SILrpphUYP42W_vs2rEiIzfQ)
+  0.35](https://docs.google.com/spreadsheets/d/11Wn5vaOVu7qDfFO3ES3SILrpphUYP42W_vs2rEiIzfQ/edit?usp=sharing)
 - [QA
   Tools
-  0.14](https://docs.google.com/spreadsheets/d/1dAoERvFTaTyrNXv88MLIiKnU1NvSsNYc0oKf7Tm6zwo)
+  0.14](https://docs.google.com/spreadsheets/d/1dAoERvFTaTyrNXv88MLIiKnU1NvSsNYc0oKf7Tm6zwo/edit?usp=sharing)
 - [Event Tag QA
   Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
 - [Event Tag
   Editor
-  0.3](https://docs.google.com/spreadsheets/d/1voIR4LjzqIf59_XCSE6haKqTubCuwTa8cVvjRp6cOws)
+  0.3](https://docs.google.com/spreadsheets/d/1voIR4LjzqIf59_XCSE6haKqTubCuwTa8cVvjRp6cOws/edit?usp=sharing&resourcekey=0-Iv-KO_l3Tb18Gi-rxJbbfg)
 - [Landing Page QA Tool &
   Editor
-  0.4](https://docs.google.com/spreadsheets/d/1wgv6trSsjizTdpNffz_FOlkBVd9b1q4XS3WL-x3h0Ks)
+  0.4](https://docs.google.com/spreadsheets/d/1wgv6trSsjizTdpNffz_FOlkBVd9b1q4XS3WL-x3h0Ks/edit?usp=sharing)
 - [Key Value
   Editor
-  0.3](https://docs.google.com/spreadsheets/d/1yqzHCypKBPup_VwdQ1Gt5nipzIBX4uL1MzWU9-YQ8Yw)
+  0.3](https://docs.google.com/spreadsheets/d/1yqzHCypKBPup_VwdQ1Gt5nipzIBX4uL1MzWU9-YQ8Yw/edit?usp=sharing&resourcekey=0-bJ1Yz2iDMqg-X0e7ExTh4w)
 - [Cost
   Editor
-  0.3](https://docs.google.com/spreadsheets/d/1LR_rOz_mJa-hnxqumfnKb9SLlVX-vAU5fUzBPtN0cTk)
+  0.3](https://docs.google.com/spreadsheets/d/1LR_rOz_mJa-hnxqumfnKb9SLlVX-vAU5fUzBPtN0cTk/edit?usp=sharing)
 - [Creative
   Loader
-  0.4](https://docs.google.com/spreadsheets/d/1CBj6xygn3lslV2HPKutvUVcJJJ4cXeUKI83lW8my1Mc)
+  0.4](https://docs.google.com/spreadsheets/d/1CBj6xygn3lslV2HPKutvUVcJJJ4cXeUKI83lW8my1Mc/edit?usp=sharing)
 
 
 <a name="quickstart"></a>
