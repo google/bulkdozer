@@ -1987,7 +1987,7 @@ var AdLoader = function(cmDAO) {
 
           var assignment = {
             'active': true,
-            'creativeId': assignmentFeed[fields.creativeId],
+            'creativeId': that.translateId('Creative', assignmentFeed, fields.creativeId),
             'startTime': assignmentFeed[fields.adCreativeAssignmentStartDate],
             'endTime': assignmentFeed[fields.adCreativeAssignmentEndDate]
           }
