@@ -245,7 +245,7 @@ var BaseLoader = function(cmDAO) {
     if(typeof(value) === 'string') {
       return value.toLowerCase() === 'true';
     } else {
-      return value === true ;
+      return value === true;
     }
   }
 
@@ -1561,8 +1561,10 @@ var PlacementLoader = function(cmDAO) {
 
     // Handle base fields
     this.assign(placement, 'name', feedItem, fields.placementName, true);
-    this.assign(placement, 'archived', feedItem, this.isTrue(fields.archived));
-    this.assign(placement, 'adBlockingOptOut', feedItem, this.isTrue(fields.adBlocking));
+
+    placement['archived'] = this.isTrue(feedItem[fields.archived]);
+    placement['adBlockingOptOut'] = this.isTrue(feedItem[fields.adBlocking]);
+
     this.assign(placement, 'siteId', feedItem, fields.siteId, true);
     this.assign(placement, 'placementGroupId', feedItem, fields.placementGroupId, false);
     this.assign(placement, 'campaignId', feedItem, fields.campaignId, true);
@@ -1816,6 +1818,21 @@ var CreativeLoader = function(cmDAO) {
     feedItem[fields.creativeId] = creative.id;
     feedItem[fields.creativeName] = creative.name;
     feedItem[fields.advertiserId] = creative.advertiserId;
+    feedItem[fields.creativeActive] = creative.active;
+
+    feedItem[fields.creativeType] = creative.type;
+
+    if(creative.size) {
+      feedItem[fields.creativeSize] = `${creative.size.width}x${creative.size.height}`;
+    }
+
+    if(creative.redirectUrl) {
+      feedItem[fields.redirectUrl] = creative.redirectUrl;
+    }
+
+    if(creative.htmlCode) {
+      feedItem[fields.htmlCode] = creative.htmlCode;
+    }
 
     return feedItem;
   }
@@ -1826,6 +1843,7 @@ var CreativeLoader = function(cmDAO) {
   this.processPush = function(job) {
     var creative = job.cmObject;
     var feedItem = job.feedItem;
+    console.log(feedItem);
 
     if(feedItem[fields.creativeName]) {
       creative.name = feedItem[fields.creativeName];
@@ -1849,6 +1867,10 @@ var CreativeLoader = function(cmDAO) {
 
     if(feedItem[fields.creativeSize] || feedItem[fields.creativeSize] === "") {
       processSize(creative, feedItem[fields.creativeSize]);
+    }
+
+    if(feedItem[fields.htmlCode] || feedItem[fields.htmlCode] === "") {
+      creative.htmlCode = feedItem[fields.htmlCode];
     }
   }
 
@@ -1968,7 +1990,7 @@ var AdLoader = function(cmDAO) {
 
           var assignment = {
             'active': true,
-            'creativeId': assignmentFeed[fields.creativeId],
+            'creativeId': that.translateId('Creative', assignmentFeed, fields.creativeId),
             'startTime': assignmentFeed[fields.adCreativeAssignmentStartDate],
             'endTime': assignmentFeed[fields.adCreativeAssignmentEndDate]
           }
@@ -2180,11 +2202,12 @@ var AdLoader = function(cmDAO) {
     if(feedItem.creativeAssignments) {
       for(var i = 0; i < feedItem.creativeAssignments.length; i++) {
         var creativeAssignment = feedItem.creativeAssignments[i];
-        var creative = cmDAO.get('Creatives', creativeAssignment[fields.creativeId]);
+        var creative = cmDAO.get('Creatives', that.translateId('Creative', creativeAssignment, fields.creativeId));
 
         creativeAssignment[fields.adName] = ad.name;
         creativeAssignment[fields.adId] = ad.id;
         creativeAssignment[fields.creativeName] = creative.name;
+        creativeAssignment[fields.creativeId] = creative.id;
 
         if(creativeAssignment[fields.landingPageId]) {
           var landingPage = cmDAO.get('AdvertiserLandingPages', creativeAssignment[fields.landingPageId]);

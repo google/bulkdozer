@@ -93,6 +93,7 @@ var fields = {
   'creativeActive': 'Creative Active',
   'redirectUrl': 'Redirect URL',
   'creativeSize': 'Creative Size',
+  'htmlCode': 'HTML',
 
   // Ad
   'creativeRotation': 'Creative Rotation',
