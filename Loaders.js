@@ -29,12 +29,27 @@ function getProfileId() {
 }
 
 /*
- * Gets the ActiveOnly flag from the store tab
+ * Gets the FilterArchived flag from the store tab
  *
  * returns: boolean representing the value of the active flag
  */
 function getActiveOnlyFlag() {
   var flag = getSheetDAO().getValue('Store', 'B5');
+
+  if(typeof(flag) == 'string') {
+    flag = flag.toLowerCase() == 'true'
+  }
+
+  return flag;
+}
+
+/*
+ * Gets the UnarchivedOnly flag from the store tab
+ *
+ * returns: boolean representing the value of the active flag
+ */
+function getUnarchivedOnlyFlag() {
+  var flag = getSheetDAO().getValue('Store', 'B7');
 
   if(typeof(flag) == 'string') {
     flag = flag.toLowerCase() == 'true'
@@ -786,6 +801,19 @@ var CampaignLoader = function(cmDAO) {
   this.addReference('Landing Page', fields.landingPageId);
 
   /**
+   * @see LandingPageLoader
+   */
+  this.processSearchOptions = function(job, searchOptions) {
+    result = false;
+
+    if(getUnarchivedOnlyFlag()) {
+      searchOptions['archived'] = false;
+    }
+
+    return result;
+  }
+
+  /**
    * Turns a Campaign Manager Campaign object from the API into a feed item to
    * be written to the sheet
    *
@@ -886,6 +914,10 @@ var LandingPageLoader = function(cmDAO) {
       searchOptions['campaignIds'] = job.campaignIds;
 
       result = true;
+    }
+
+    if(getUnarchivedOnlyFlag()) {
+      searchOptions['archived'] = false;
     }
 
     return result;
@@ -1142,6 +1174,9 @@ var PlacementGroupLoader = function(cmDAO) {
       result = true;
     }
 
+    if(getUnarchivedOnlyFlag()) {
+      searchOptions['archived'] = false;
+    }
     return result;
   }
 
@@ -1241,6 +1276,10 @@ var PlacementLoader = function(cmDAO) {
       searchOptions['groupIds'] = job.placementGroupIds;
 
       result = true;
+    }
+
+    if(getUnarchivedOnlyFlag()) {
+      searchOptions['archived'] = false;
     }
 
     return result;
@@ -1927,6 +1966,10 @@ var AdLoader = function(cmDAO) {
 
     if(getActiveOnlyFlag()) {
       searchOptions['active'] = true;
+    }
+
+    if(getUnarchivedOnlyFlag()) {
+      searchOptions['archived'] = false;
     }
 
     return result;
