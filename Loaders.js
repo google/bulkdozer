@@ -2185,11 +2185,14 @@ var AdLoader = function(cmDAO) {
     ad.name = feedItem[fields.adName];
     ad.type = feedItem[fields.adType];
 
-    if(ad.type != 'AD_SERVING_DEFAULT_AD' && ad.type != 'AD_SERVING_BRAND_SAFE_AD') {
+    if(ad.type != 'AD_SERVING_DEFAULT_AD'
+        && ad.type != 'AD_SERVING_BRAND_SAFE_AD'
+        && ad.type != 'AD_SERVING_TRACKING') {
       if(!ad.deliverySchedule) {
         ad.deliverySchedule = {};
         ad.deliverySchedule.impressionRatio = 1;
       }
+
       ad.deliverySchedule.priority = feedItem[fields.adPriority];
 
       if(feedItem.hasOwnProperty(fields.hardCutoff) && feedItem[fields.hardCutoff] !== '') {
