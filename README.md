@@ -68,7 +68,7 @@ Use the links below to navigate to each one of the tools available. Refer to the
   0.3](https://docs.google.com/spreadsheets/d/1LR_rOz_mJa-hnxqumfnKb9SLlVX-vAU5fUzBPtN0cTk/edit?usp=sharing)
 - [Creative
   Loader
-  0.5](https://docs.google.com/spreadsheets/d/1DTUiGIExYYB_knW-zbmLDNirkmxglvp2mTb9ZArxBXk/edit?usp=sharing&resourcekey=0-WxasO1d0RdgbxGlX3lalQ://docs.google.com/spreadsheets/d/1BzK2GADqecZMgAnhMyspgVW6z8P7pVfN2RjGxVyrK9Y/edit?usp=sharing&resourcekey=0-_fmvGhZAIQk5dCsRH8MFpQ)
+  0.6](https://docs.google.com/spreadsheets/d/1BzK2GADqecZMgAnhMyspgVW6z8P7pVfN2RjGxVyrK9Y/edit?usp=sharing&resourcekey=0-_fmvGhZAIQk5dCsRH8MFpQ)
 
 <a name="quickstart"></a>
 
