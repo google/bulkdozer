@@ -48,7 +48,7 @@ Use the links below to navigate to each one of the tools available. Refer to the
 
 - [Bulkdozer
   Lite
-  0.36](https://docs.google.com/spreadsheets/d/1kwo0A015xrX-v7G87WTACWe2jqe44fqRD4wc2Bs368E/edit?usp=sharing&resourcekey=0-INlZUdZk6TOU8uCPt-sQVQ)
+  0.37](https://docs.google.com/spreadsheets/d/1ZDXUZe-N468c4Gkk_p6qsgBkR2MGBi-qUAQfkvnkBhY/edit?usp=sharing&resourcekey=0-o7HLnGqg-Qz7vZykVC9AQg)
 - [QA
   Tools
   0.14](https://docs.google.com/spreadsheets/d/1dAoERvFTaTyrNXv88MLIiKnU1NvSsNYc0oKf7Tm6zwo/edit?usp=sharing)
@@ -68,8 +68,7 @@ Use the links below to navigate to each one of the tools available. Refer to the
   0.3](https://docs.google.com/spreadsheets/d/1LR_rOz_mJa-hnxqumfnKb9SLlVX-vAU5fUzBPtN0cTk/edit?usp=sharing)
 - [Creative
   Loader
-  0.4](https://docs.google.com/spreadsheets/d/1CBj6xygn3lslV2HPKutvUVcJJJ4cXeUKI83lW8my1Mc/edit?usp=sharing)
-
+  0.5](https://docs.google.com/spreadsheets/d/1DTUiGIExYYB_knW-zbmLDNirkmxglvp2mTb9ZArxBXk/edit?usp=sharing&resourcekey=0-WxasO1d0RdgbxGlX3lalQ://docs.google.com/spreadsheets/d/1BzK2GADqecZMgAnhMyspgVW6z8P7pVfN2RjGxVyrK9Y/edit?usp=sharing&resourcekey=0-_fmvGhZAIQk5dCsRH8MFpQ)
 
 <a name="quickstart"></a>
 
