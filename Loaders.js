@@ -1617,7 +1617,6 @@ var PlacementLoader = function(cmDAO) {
 
     processActiveViewAndVerification(job);
 
-
     if(job.processPricingSchedule) {
       this.processPricingSchedule(job);
     }
@@ -1647,6 +1646,14 @@ var PlacementLoader = function(cmDAO) {
       pricingSchedulePostProcess(job);
     }
   }
+
+  /**
+   * @see AdLoader.preparePushJob
+   */
+  this.preparePushJob = function(job, pushJob) {
+    pushJob.processPricingSchedule = job.processPricingSchedule;
+  }
+
 }
 PlacementLoader.prototype = Object.create(BaseLoader.prototype);
 
@@ -1882,7 +1889,6 @@ var CreativeLoader = function(cmDAO) {
   this.processPush = function(job) {
     var creative = job.cmObject;
     var feedItem = job.feedItem;
-    console.log(feedItem);
 
     if(feedItem[fields.creativeName]) {
       creative.name = feedItem[fields.creativeName];
