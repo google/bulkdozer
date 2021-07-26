@@ -48,7 +48,7 @@ Use the links below to navigate to each one of the tools available. Refer to the
 
 - [Bulkdozer
   Lite
-  0.39](https://docs.google.com/spreadsheets/d/1n2dqrq0iryC2OjKYP2jL--VYNf5JAhkmMf2zpMCUmE4/edit?usp=sharing)
+  0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing)
 - [QA
   Tools
   0.15](https://docs.google.com/spreadsheets/d/10sZGoK8Z9BMb_6QKeOzJ4D698mJ4mNbtDY8ASfoyh9I/edit?usp=sharing)
