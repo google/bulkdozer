@@ -77,73 +77,74 @@ function toggleEnabledButtons() {
  * Clears the entire feed
  */
 function clearFeed() {
-  if(confirm('Clear the feed?')) {
-    toggleEnabledButtons();
-    setStatus('Clearing the feed ...');
+  userConfirmation('Clear the feed?').then(proceed => {
+    if(proceed) {
+      setStatus('Clearing the feed ...');
 
-    var jobs = [
-      {
-        'sheetName': 'Landing Page',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Campaign',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Event Tag',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Creative',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Placement Group',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Placement',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Placement Pricing Schedule',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Ad',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Ad Creative Assignment',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Ad Placement Assignment',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Event Tag Ad Assignment',
-        'range': 'A2:AZ'
-      },
-      {
-        'sheetName': 'Store',
-        'range': 'A1:AZ1'
-      },
-      {
-        'sheetName': 'Log',
-        'range': 'A1:B'
-      },
-      {
-        'sheetName': 'QA',
-        'range': 'A2:AZ'
-      }
-    ];
+      var jobs = [
+        {
+          'sheetName': 'Landing Page',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Campaign',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Event Tag',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Creative',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Placement Group',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Placement',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Placement Pricing Schedule',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Ad',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Ad Creative Assignment',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Ad Placement Assignment',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Event Tag Ad Assignment',
+          'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Store',
+          'range': 'A1:AZ1'
+        },
+        {
+          'sheetName': 'Log',
+          'range': 'A1:B'
+        },
+        {
+          'sheetName': 'QA',
+          'range': 'A2:AZ'
+        }
+      ];
 
-    new Runner().run('clear', jobs).then(genericCallback).then(function(result) {
-      toggleEnabledButtons();
-    });
-  }
+      new Runner().run('clear', jobs).then(genericCallback).then(function(result) {
+        toggleEnabledButtons();
+      });
+    }
+  });
 }
 
 /**
@@ -393,11 +394,37 @@ function configureMainEntityFetchJobs(jobsMap) {
 }
 
 /**
+ * Displays a confirm dialog with the message passed and returns true if the
+ * user's response is yes
+ *
+ * params:
+ *  message: The message to display in the dialog
+ *
+ * returns: Promise with boolean, whether the user's response was positive.
+ */
+function userConfirmation(message) {
+  toggleEnabledButtons();
+  setStatus('Confirming operation ...');
+
+  return new Runner().run('userConfirmation',
+      [{'title': 'Bulkdozer','message': message}]).then(job => {
+    if(job[0].result == 'NO') {
+      toggleEnabledButtons();
+      setStatus('Ready');
+    }
+
+    return job[0].result == 'YES';
+  });
+}
+
+/**
  * Loads data from CM
  */
 function loadFromCM() {
-  if(confirm('Replace data in the feed with data from Campaign Manager?')) {
-    toggleEnabledButtons();
+  userConfirmation('Replace data in the feed with data from Campaign Manager?').then(proceed => {
+    if(!proceed) {
+      return
+    }
 
     var logger = getLogger();
 
@@ -519,142 +546,142 @@ function loadFromCM() {
 
       console.log(error);
     });
-  }
+  });
 }
 
 /**
  * Loads data from CM in the QA format
  */
 function qaCMLoad() {
-  if(confirm('Replace data in the feed with data from Campaign Manager?')) {
-    toggleEnabledButtons();
+  userConfirmation('Replace data in the feed with data from Campaign Manager?').then(proceed => {
+    if(proceed) {
+      var logger = getLogger();
 
-    var logger = getLogger();
+      setStatus('Identifying item ids to load');
 
-    setStatus('Identifying item ids to load');
-
-    logger.clear().then(function() {
-      google.script.run.goToTab('Log');
-    });
-
-    return new Runner().run('initializeJob', [{}]).then(function(result) {
-      console.log('Starting job: ' + result[0].jobId);
-
-    }).then(function(result) {
-      return new Runner().run('getEntityConfigs', [{}]);
-    }).then(function(result) {
-      var entityConfigs = {};
-
-      if(result.length > 0 && result[0].entityConfigs) {
-        entityConfigs = result[0].entityConfigs
-      }
-
-      return identifyItemsToLoad(entityConfigs);
-    }).then(function(result) {
-      return new Runner().run('clear', [{
-        'sheetName': 'QA',
-        'range': 'A2:AZ',
-        'run': true
-      }]).then(function() {
-        return result;
+      logger.clear().then(function() {
+        google.script.run.goToTab('Log');
       });
-    }).then(function(jobs) {
-      setStatus('Loading main entities from CM');
 
-      var jobsMap = getJobsMap(jobs);
+      return new Runner().run('initializeJob', [{}]).then(function(result) {
+        console.log('Starting job: ' + result[0].jobId);
 
-      disableJobs(jobs);
+      }).then(function(result) {
+        return new Runner().run('getEntityConfigs', [{}]);
+      }).then(function(result) {
+        var entityConfigs = {};
 
-      configureMainEntityFetchJobs(jobsMap);
+        if(result.length > 0 && result[0].entityConfigs) {
+          entityConfigs = result[0].entityConfigs
+        }
 
-      return new Runner().run('cmFetch', jobs);
-    }).then(function(jobs) {
-      logger.log(jobs);
+        return identifyItemsToLoad(entityConfigs);
+      }).then(function(result) {
+        return new Runner().run('clear', [{
+          'sheetName': 'QA',
+          'range': 'A2:AZ',
+          'run': true
+        }]).then(function() {
+          return result;
+        });
+      }).then(function(jobs) {
+        setStatus('Loading main entities from CM');
 
-      var jobsMap = getJobsMap(jobs);
+        var jobsMap = getJobsMap(jobs);
 
-      if(jobsMap['EventTags']) {
         disableJobs(jobs);
-        jobsMap['EventTags'].run = true; // the problem is in this line
 
-        jobsMap['EventTags'].adIds = [];
-        forEach(jobsMap['Ads'].itemsToLoad, function(index, item) {
-          jobsMap['EventTags'].adIds.push(item.id);
-        });
-
-        jobsMap['EventTags'].campaignIds = [];
-        forEach(jobsMap['Campaigns'].itemsToLoad, function(index, item) {
-          jobsMap['EventTags'].campaignIds.push(item.id);
-        });
-
-        jobsMap['EventTags'].preFetchConfigs = [
-          {
-            'entity': 'Campaigns',
-            'listName': 'campaigns',
-            'filterName': 'ids',
-            'fieldName': 'campaignId'
-          }
-        ];
+        configureMainEntityFetchJobs(jobsMap);
 
         return new Runner().run('cmFetch', jobs);
-      } else {
-        return jobs;
-      }
-    }).then(function(jobs) {
-      setStatus('Generating QA Report');
+      }).then(function(jobs) {
+        logger.log(jobs);
 
-      var jobsMap = getJobsMap(jobs);
+        var jobsMap = getJobsMap(jobs);
 
-      var hierarchyJob = {};
+        if(jobsMap['EventTags']) {
+          disableJobs(jobs);
+          jobsMap['EventTags'].run = true; // the problem is in this line
 
-      if(jobsMap['Campaigns']) {
-        hierarchyJob['campaigns'] = jobsMap['Campaigns'].itemsToLoad;
-      }
-      if(jobsMap['Placements']) {
-        hierarchyJob['placements'] = jobsMap['Placements'].itemsToLoad;
-      }
-      if(jobsMap['PlacementGroups']) {
-        hierarchyJob['placementGroups'] = jobsMap['PlacementGroups'].itemsToLoad;
-      }
-      if(jobsMap['Ads']) {
-        hierarchyJob['ads'] = jobsMap['Ads'].itemsToLoad;
-      }
-      if(jobsMap['AdvertiserLandingPages']) {
-        hierarchyJob['landingPages'] = jobsMap['AdvertiserLandingPages'].itemsToLoad;
-      }
-      if(jobsMap['Creatives']) {
-        hierarchyJob['creatives'] = jobsMap['Creatives'].itemsToLoad;
-      }
-      if(jobsMap['EventTags']) {
-        hierarchyJob['eventTags'] = jobsMap['EventTags'].itemsToLoad;
-      }
+          jobsMap['EventTags'].adIds = [];
+          forEach(jobsMap['Ads'].itemsToLoad, function(index, item) {
+            jobsMap['EventTags'].adIds.push(item.id);
+          });
 
-      return new Runner().run('qa', [hierarchyJob]);
-    }).then(function(jobs) {
-      // This causes the sidebar to crash due to the data volume from the hierarchy job
-      //logger.log(jobs);
+          jobsMap['EventTags'].campaignIds = [];
+          forEach(jobsMap['Campaigns'].itemsToLoad, function(index, item) {
+            jobsMap['EventTags'].campaignIds.push(item.id);
+          });
 
-      var error = false;
+          jobsMap['EventTags'].preFetchConfigs = [
+            {
+              'entity': 'Campaigns',
+              'listName': 'campaigns',
+              'filterName': 'ids',
+              'fieldName': 'campaignId'
+            }
+          ];
 
-      forEach(jobs, function(index, job) {
-        if(job.error) {
-          setStatus(JSON.stringify(job.error));
-          error = true;
+          return new Runner().run('cmFetch', jobs);
+        } else {
+          return jobs;
         }
+      }).then(function(jobs) {
+        setStatus('Generating QA Report');
+
+        var jobsMap = getJobsMap(jobs);
+
+        var hierarchyJob = {};
+
+        if(jobsMap['Campaigns']) {
+          hierarchyJob['campaigns'] = jobsMap['Campaigns'].itemsToLoad;
+        }
+        if(jobsMap['Placements']) {
+          hierarchyJob['placements'] = jobsMap['Placements'].itemsToLoad;
+        }
+        if(jobsMap['PlacementGroups']) {
+          hierarchyJob['placementGroups'] = jobsMap['PlacementGroups'].itemsToLoad;
+        }
+        if(jobsMap['Ads']) {
+          hierarchyJob['ads'] = jobsMap['Ads'].itemsToLoad;
+        }
+        if(jobsMap['AdvertiserLandingPages']) {
+          hierarchyJob['landingPages'] = jobsMap['AdvertiserLandingPages'].itemsToLoad;
+        }
+        if(jobsMap['Creatives']) {
+          hierarchyJob['creatives'] = jobsMap['Creatives'].itemsToLoad;
+        }
+        if(jobsMap['EventTags']) {
+          hierarchyJob['eventTags'] = jobsMap['EventTags'].itemsToLoad;
+        }
+
+        return new Runner().run('qa', [hierarchyJob]);
+      }).then(function(jobs) {
+        // This causes the sidebar to crash due to the data volume from the hierarchy job
+        //logger.log(jobs);
+
+        var error = false;
+
+        forEach(jobs, function(index, job) {
+          if(job.error) {
+            setStatus(JSON.stringify(job.error));
+            error = true;
+          }
+        });
+
+        if(!error) {
+          setStatus('Ready');
+        }
+
+        toggleEnabledButtons();
+      }).catch(function(error) {
+        logger.log(jobs);
+        setStatus('An error happened!');
+
+        console.log(error);
       });
-
-      if(!error) {
-        setStatus('Ready');
-      }
-
-      toggleEnabledButtons();
-    }).catch(function(error) {
-      logger.log(jobs);
-      setStatus('An error happened!');
-
-      console.log(error);
-    });
-  }
+    }
+  });
 }
 
 /**
@@ -951,204 +978,204 @@ function getFailedJobs(jobsMap) {
  * Pushes data to Campaign Manager
  */
 function pushToCM() {
-  if(confirm('Update Campaign Manager with data from feed?')) {
-    toggleEnabledButtons();
+  userConfirmation('Update Campaign Manager with data from feed?').then(proceed => {
+    if(proceed) {
+      var logger = getLogger();
 
-    var logger = getLogger();
+      google.script.run.goToTab('Log');
 
-    google.script.run.goToTab('Log');
+      setStatus('Pushing to CM');
 
-    setStatus('Pushing to CM');
+      return new Runner().run('initializeJob', [{}]).then(function(result) {
+        console.log('Starting job: ' + result[0].jobId);
+        return logger.clear();
+      }).then(function(result) {
+        log('Starting CM push', true);
+        return new Runner().run('loadIdMap', [{}]);
+      }).then(function(idMap) {
+        return new Runner().run('getEntityConfigs', [{}]).then(function(entityConfigs) {
+          return {
+            'idMap': idMap,
+            'entityConfigs': entityConfigs
+          }
+        });
+      }).then(function(result) {
+        var idMap = result.idMap;
+        var entityConfigs = {};
 
-    return new Runner().run('initializeJob', [{}]).then(function(result) {
-      console.log('Starting job: ' + result[0].jobId);
-      return logger.clear();
-    }).then(function(result) {
-      log('Starting CM push', true);
-      return new Runner().run('loadIdMap', [{}]);
-    }).then(function(idMap) {
-      return new Runner().run('getEntityConfigs', [{}]).then(function(entityConfigs) {
-        return {
-          'idMap': idMap,
-          'entityConfigs': entityConfigs
+        if(result.entityConfigs.length > 0 && result.entityConfigs[0].entityConfigs) {
+          entityConfigs = result.entityConfigs[0].entityConfigs
         }
+
+        var jobs = [];
+
+        if(checkEntityMode(entityConfigs, 'Landing Page', 'WRITE')) {
+          jobs.push({
+            'entity': 'AdvertiserLandingPages',
+            'preFetchConfigs': [
+              {
+                'entity': 'AdvertiserLandingPages',
+                'listName': 'landingPages',
+                'filterName': 'ids',
+                'fieldName': 'Landing Page ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Campaign', 'WRITE')) {
+          jobs.push({
+            'entity': 'Campaigns',
+            'preFetchConfigs': [
+              {
+                'entity': 'AdvertiserLandingPages',
+                'listName': 'landingPages',
+                'filterName': 'ids',
+                'fieldName': 'Landing Page ID'
+              },{
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Event Tag', 'WRITE')) {
+          jobs.push({
+            'entity': 'EventTags',
+            'preFetchConfigs': [
+              {
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Creative', 'WRITE')) {
+          jobs.push({
+            'entity': 'Creatives',
+            'preFetchConfigs': [
+              {
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              },{
+                'entity': 'Creatives',
+                'listName': 'creatives',
+                'filterName': 'ids',
+                'fieldName': 'Creative ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Placement Group', 'WRITE')) {
+          jobs.push({
+            'entity': 'PlacementGroups',
+            'preFetchConfigs': [
+              {
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              },{
+                'entity': 'Sites',
+                'listName': 'sites',
+                'filterName': 'ids',
+                'fieldName': 'Site ID'
+              },{
+                'entity': 'PlacementGroups',
+                'listName': 'placementGroups',
+                'filterName': 'ids',
+                'fieldName': 'Placement Group ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Placement', 'WRITE')) {
+          jobs.push({
+            'entity': 'Placements',
+            'processPricingSchedule': checkEntityMode(entityConfigs, 'Pricing Schedule', 'WRITE'),
+            'preFetchConfigs': [
+              {
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              },{
+                'entity': 'Sites',
+                'listName': 'sites',
+                'filterName': 'ids',
+                'fieldName': 'Site ID'
+              },{
+                'entity': 'PlacementGroups',
+                'listName': 'placementGroups',
+                'filterName': 'ids',
+                'fieldName': 'Placement Group ID'
+              },{
+                'entity': 'Placements',
+                'listName': 'placements',
+                'filterName': 'ids',
+                'fieldName': 'Placement ID'
+              }
+            ]
+          });
+        }
+
+        if(checkEntityMode(entityConfigs, 'Ad', 'WRITE')) {
+          jobs.push({
+            'entity': 'Ads',
+            'processCreativeAssignments': checkEntityMode(entityConfigs, 'Ad Creative Assignment', 'WRITE'),
+            'processPlacementAssignments': checkEntityMode(entityConfigs, 'Ad Placement Assignment', 'WRITE'),
+            'processEventTagAssignments': checkEntityMode(entityConfigs, 'Ad Event Tag Assignment', 'WRITE'),
+            'preFetchConfigs': [
+              {
+                'entity': 'Campaigns',
+                'listName': 'campaigns',
+                'filterName': 'ids',
+                'fieldName': 'Campaign ID'
+              },{
+                'entity': 'Ads',
+                'listName': 'ads',
+                'filterName': 'ids',
+                'fieldName': 'Ad ID'
+              }
+            ]
+          });
+        }
+
+        var jobsMap = getJobsMap(jobs);
+
+        return orchestratePush(jobs, idMap[0].idMap, jobsMap, 0);
+      }).then(function(jobs) {
+        toggleEnabledButtons();
+
+        setStatus('Ready');
+
+        log('Done, clean run', true);
+
+        return new Runner().run('clear', [{
+          'sheetName': 'Store',
+          'range': 'A1:AZ1'
+        }]);
+      }).catch(function(error) {
+        toggleEnabledButtons();
+
+        log('Done but errors happened, please review logs above for details', true);
+
+        setStatus('An error happened, please see details in the log tab. Note that a map of extids is being kept so you can re-run the current job ' +
+            'after fixing the issues. If you plan to start working on another campaign, please make sure to "Clear Feed" before starting');
+
+        console.log(error);
       });
-    }).then(function(result) {
-      var idMap = result.idMap;
-      var entityConfigs = {};
-
-      if(result.entityConfigs.length > 0 && result.entityConfigs[0].entityConfigs) {
-        entityConfigs = result.entityConfigs[0].entityConfigs
-      }
-
-      var jobs = [];
-
-      if(checkEntityMode(entityConfigs, 'Landing Page', 'WRITE')) {
-        jobs.push({
-          'entity': 'AdvertiserLandingPages',
-          'preFetchConfigs': [
-            {
-              'entity': 'AdvertiserLandingPages',
-              'listName': 'landingPages',
-              'filterName': 'ids',
-              'fieldName': 'Landing Page ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Campaign', 'WRITE')) {
-        jobs.push({
-          'entity': 'Campaigns',
-          'preFetchConfigs': [
-            {
-              'entity': 'AdvertiserLandingPages',
-              'listName': 'landingPages',
-              'filterName': 'ids',
-              'fieldName': 'Landing Page ID'
-            },{
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Event Tag', 'WRITE')) {
-        jobs.push({
-          'entity': 'EventTags',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Creative', 'WRITE')) {
-        jobs.push({
-          'entity': 'Creatives',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Creatives',
-              'listName': 'creatives',
-              'filterName': 'ids',
-              'fieldName': 'Creative ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Placement Group', 'WRITE')) {
-        jobs.push({
-          'entity': 'PlacementGroups',
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Sites',
-              'listName': 'sites',
-              'filterName': 'ids',
-              'fieldName': 'Site ID'
-            },{
-              'entity': 'PlacementGroups',
-              'listName': 'placementGroups',
-              'filterName': 'ids',
-              'fieldName': 'Placement Group ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Placement', 'WRITE')) {
-        jobs.push({
-          'entity': 'Placements',
-          'processPricingSchedule': checkEntityMode(entityConfigs, 'Pricing Schedule', 'WRITE'),
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Sites',
-              'listName': 'sites',
-              'filterName': 'ids',
-              'fieldName': 'Site ID'
-            },{
-              'entity': 'PlacementGroups',
-              'listName': 'placementGroups',
-              'filterName': 'ids',
-              'fieldName': 'Placement Group ID'
-            },{
-              'entity': 'Placements',
-              'listName': 'placements',
-              'filterName': 'ids',
-              'fieldName': 'Placement ID'
-            }
-          ]
-        });
-      }
-
-      if(checkEntityMode(entityConfigs, 'Ad', 'WRITE')) {
-        jobs.push({
-          'entity': 'Ads',
-          'processCreativeAssignments': checkEntityMode(entityConfigs, 'Ad Creative Assignment', 'WRITE'),
-          'processPlacementAssignments': checkEntityMode(entityConfigs, 'Ad Placement Assignment', 'WRITE'),
-          'processEventTagAssignments': checkEntityMode(entityConfigs, 'Ad Event Tag Assignment', 'WRITE'),
-          'preFetchConfigs': [
-            {
-              'entity': 'Campaigns',
-              'listName': 'campaigns',
-              'filterName': 'ids',
-              'fieldName': 'Campaign ID'
-            },{
-              'entity': 'Ads',
-              'listName': 'ads',
-              'filterName': 'ids',
-              'fieldName': 'Ad ID'
-            }
-          ]
-        });
-      }
-
-      var jobsMap = getJobsMap(jobs);
-
-      return orchestratePush(jobs, idMap[0].idMap, jobsMap, 0);
-    }).then(function(jobs) {
-      toggleEnabledButtons();
-
-      setStatus('Ready');
-
-      log('Done, clean run', true);
-
-      return new Runner().run('clear', [{
-        'sheetName': 'Store',
-        'range': 'A1:AZ1'
-      }]);
-    }).catch(function(error) {
-      toggleEnabledButtons();
-
-      log('Done but errors happened, please review logs above for details', true);
-
-      setStatus('An error happened, please see details in the log tab. Note that a map of extids is being kept so you can re-run the current job ' +
-          'after fixing the issues. If you plan to start working on another campaign, please make sure to "Clear Feed" before starting');
-
-      console.log(error);
-    });
-  }
+    }
+  });
 }
 </script>
