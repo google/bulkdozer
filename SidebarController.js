@@ -233,6 +233,27 @@ function loadIdMap(job) {
 }
 
 /**
+ * Shows a confirm dialog
+ *
+ * params:
+ *  job.title: The title for the dialog
+ *  job.message: The message to display
+ *
+ * returns job: job.result is populated with the user's response from the dialog.
+ */
+function _userConfirmation(job) {
+  var ui = SpreadsheetApp.getUi();
+
+  job.result = ui.alert(job.title, job.message, ui.ButtonSet.YES_NO);
+
+  return job;
+}
+function userConfirmation(job) {
+  return _invoke('_userConfirmation', job);
+}
+
+
+/**
  * Write logs to the Log tab
  *
  * params:
