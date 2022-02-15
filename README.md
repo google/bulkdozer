@@ -31,8 +31,8 @@ Bulkdozer is a Google Sheets-based tool leveraging AppScript and the CM360 API t
 
 ## Installation
 
-Use the link below to navigate to the tools available. Refer to the
-"Instructions" tab of each tool for details on how to deploy and use them.
+Use the link below to navigate to the tool. Refer to the
+"Instructions" tab of for details on how to deploy and use the solution.
 
 - [Bulkdozer
   0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing)
