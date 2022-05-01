@@ -14,6 +14,7 @@
     - [**Guide: Bulk Creative Swap**](#guide-bulk-creative-swap)
 - [Terms and Conditions](#terms-and-conditions)
   - [Support](#support)
+  - [Other Resources](#other-resources)
 
 <a name="introduction"></a>
 
@@ -178,5 +179,19 @@ Bulkdozer is community supported, if you have any issues or questions please pos
 
 Sign up for updates and announcements:
 [Bulkdozer Announcements](https://groups.google.com/forum/#!forum/bulkdozer-announcements).
+
+[Back to top](#top_page)
+
+## Other Resources
+
+The files below are a simplified version of [Bulkdozer 0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing) and only include a specific Bulkdozer feature.
+
+- [QA Tools 0.15](https://docs.google.com/spreadsheets/d/10sZGoK8Z9BMb_6QKeOzJ4D698mJ4mNbtDY8ASfoyh9I/edit?usp=sharing)
+- [Event Tag QA Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
+- [Event Tag Editor 0.4](https://docs.google.com/spreadsheets/d/1_ox81ztsuxVaNsEjYvr783urGP41Hv1vnyP-hl0kUKo/edit?usp=sharing&resourcekey=0-CWepPTVXFFaBDg0CvD4rzg)
+- [Landing Page QA Tool & Editor 0.5](https://docs.google.com/spreadsheets/d/1TB9FxPfMWvaCikWvhMKnkfT-rd9LQskI-VI7QaVFJ7s/edit?usp=sharing)
+- [Key Value Editor 0.4](https://docs.google.com/spreadsheets/d/1Fn7sOlw89gC2mwedM1aSE0r-8l7hCWLFKYOZMfEG-F0/edit?usp=sharing&resourcekey=0-9ZmyZDAy0Yc75kUuagRecQ)
+- [Cost Editor 0.4](https://docs.google.com/spreadsheets/d/1PKtDaEeWUUt-22VxWqBqrAZ4ZohllCswA6d9EMJUIBc/edit?usp=sharing&resourcekey=0-jLeKkIWxah0YaHrdfab7nQ)
+- [Creative Loader 0.7](https://docs.google.com/spreadsheets/d/1U6LJesagSfb_jQbS-JZsqvt-3CEyB0mciO84SqiF_yc/edit?usp=sharing)
 
 [Back to top](#top_page)
