@@ -6,6 +6,7 @@
   - [Solution Overview](#solution-overview)
   - [Solution Requirements](#solution-requirements)
   - [Installation](#installation)
+    - [Apps Script Advanced Service Configuration](#apps-script-advanced-service-configuration)
   - [Solution Manual](#solution-manual)
     - [**Solution Setup, Basics & Legend**](#solution-setup-basics--legend)
     - [**Color Legend**](#color-legend)
@@ -20,7 +21,7 @@
 
 ## Solution Overview
 
-Bulkdozer is a Google Sheets-based tool leveraging AppScript and the CM360 API to load and visualize CM360 campaign data, allowing the user to traffic more efficiently at scale. Bulkdozer can create and edit Campaigns, Placement Groups, Placements, Ads, Creative Assignments, Landing Pages and Event Tags.
+Bulkdozer is a Google Sheets-based tool leveraging Apps Script and the CM360 API to load and visualize CM360 campaign data, allowing the user to traffic more efficiently at scale. Bulkdozer can create and edit Campaigns, Placement Groups, Placements, Ads, Creative Assignments, Landing Pages and Event Tags.
 
 ## Solution Requirements
 
@@ -37,6 +38,14 @@ Use the link below to navigate to the tool. Refer to the
 
 - [Bulkdozer
   0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing)
+
+### Apps Script Advanced Service Configuration
+Due to recent Apps Scripts changes, an extra configuration is required for Bulkdozer to work properly. Please follow the steps below:
+1. In your Bulkdozer Google Sheet copy navigate from menu 'Tools' > 'Script Editor'.
+2. In the Script Editor, navigate to the 'Editor' tab in the outer left nav (icon looks like '< >' brackets)
+3. Under the 'Services' section of the inner left nav, click on the vertical three-dots next to the 'DoubleClickCampaigns' service and click 'Remove' and then click 'Remove service' on the confirmation pop-up.
+4. Click the '+' button next to Services in the inner left nav to re-add the service.
+5. In the list of services select 'Campaign Manager 360 API' and check that the version is the latest or 'v3.5' at this time and that the 'Identifier' is the same 'DoubleClickCampaigns'.
 
 ## Solution Manual
 
