@@ -37,7 +37,7 @@ Use the link below to navigate to the tool. Refer to the
 "Instructions" tab of for details on how to deploy and use the solution.
 
 - [Bulkdozer
-  0.39.1](https://docs.google.com/spreadsheets/d/1mwBJ5f7kccB7IlpOT8xleY_aDdiNuKhrUVNWj5i9Jj4/edit?usp=sharing)
+  0.39.2](https://docs.google.com/spreadsheets/d/1mwBJ5f7kccB7IlpOT8xleY_aDdiNuKhrUVNWj5i9Jj4/edit?usp=sharing)
 
 ### Apps Script Advanced Service Configuration
 Due to recent Apps Scripts changes, an extra configuration is required for Bulkdozer to work properly. Please follow the steps below:
