@@ -110,14 +110,26 @@ var CampaignManagerDAO = function(profileId) {
    * returns: List of items returned from the API
    */
   this.list = function(entity, listName, options) {
-    var result;
+    var result = [];
     var cacheKey = getListCacheKey(entity, listName, options);
 
     if (listCache[cacheKey]) {
       result = listCache[cacheKey];
     } else {
       console.log('Invoking API to list ' + entity);
-      result = fetchAll(entity, listName, options);
+
+      // Check for ids present in the search options
+      // to create batches if length > 500
+      if(!options['ids']) {
+        result = fetchAll(entity, listName, options);
+      } else {
+        let batches = createBatches(options['ids']);
+        // Make API calls in batches to avoid the 500 ids limit error
+        for(let i = 0; i < batches.length; i++) {
+          options['ids'] = batches[i];
+          result = result.concat(fetchAll(entity, listName, options));
+        }
+      }
 
       listCache[cacheKey] = result;
 
@@ -131,6 +143,23 @@ var CampaignManagerDAO = function(profileId) {
     }
 
     return result;
+  }
+
+  /**
+   * Creates batches of 500 ids for the search options query params
+   *
+   * params:
+   *  ids: the id list in the search options obj
+   */
+  function createBatches(ids) {
+    let batches = [];
+    let tempArray;
+    let limit = 500;
+    for (let i = 0, j = ids.length; i < j; i += limit) {
+        tempArray = ids.slice(i, (i + limit));
+        batches.push(tempArray);
+    }
+    return batches;
   }
 
   /**
