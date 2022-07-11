@@ -137,6 +137,10 @@ function clearFeed() {
         {
           'sheetName': 'QA',
           'range': 'A2:AZ'
+        },
+        {
+          'sheetName': 'Advertiser Creative',
+          'range': 'A2:AZ'
         }
       ];
 
@@ -270,6 +274,10 @@ function identifyItemsToLoad(entityConfigs) {
     jobs.push({ 'entity': 'AdEventTagAssignment' });
   }
 
+  if(checkEntityMode(entityConfigs, 'Advertiser Creative', 'READ')) {
+    jobs.push({ 'entity': 'AdvertiserCreative' });
+  }
+
   return new Runner().run('identifySpecifiedItemsToLoad', jobs);
 }
 
@@ -390,6 +398,10 @@ function configureMainEntityFetchJobs(jobsMap) {
         'fieldName': 'campaignId'
       }
     ];
+  }
+
+  if(jobsMap['AdvertiserCreative']) {
+    jobsMap['AdvertiserCreative'].run = true;
   }
 }
 

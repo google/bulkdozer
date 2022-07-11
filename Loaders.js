@@ -787,6 +787,121 @@ var BaseLoader = function(cmDAO) {
 }
 
 /**
+ * Advertiser Creative Loader
+ */
+ var AdvertiserCreativeLoader = function(cmDAO) {
+  this.label = 'Advertiser Creative';
+  this.entity = 'AdvertiserCreative';
+  this.tabName = ['Advertiser Creative'];
+  this.idField = fields.creativeId;
+  this.listField = 'creatives';
+
+  BaseLoader.call(this, cmDAO);
+
+  this.addReference('Advertiser', fields.advertiserId);
+
+  /**
+   * Override this method since it has a different logic to identify
+   * items to load sending only specific advertiser-creative ids
+   * Based on the data in the feed, identify which items need to be loaded
+   *
+   * params:
+   *  job: the job object
+   */
+  this.identifyItemsToLoad = function(job) {
+    this.log(job, 'Identifying items to load: ' + this.label);
+    var feedProvider = new FeedProvider(this.tabName, this.keys).load();
+    var idsToLoad = [];
+    job.idsToLoad = idsToLoad;
+    idsToLoad[this.entity] = idsToLoad;
+    // Gather IDs from the feedProvider
+    var item = null;
+    while(item = feedProvider.next()) {
+      // Advertiser ID is required
+      if(item[fields.advertiserId]) {
+        let advertiserId = item[fields.advertiserId];
+        let creativeId = item[this.idField];
+        if(validId(advertiserId)) {
+          let id = `${advertiserId}-${creativeId}`;
+          this.pushUnique(idsToLoad, id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Override this method since it has a different logic to fetch
+   * items to load sending only specific advertiser-creative ids
+   * @see BaseLoader.fetchItemsToLoad
+   */
+  this.fetchItemsToLoad = function(job) {
+    console.log('FetchItemsToLoad in ' + this.label);
+    let advertisersMap = {};
+    let advertiserCreatives = [];
+    // If only advertiser id was provided, load all creatives under it
+    // If creative ids are provided, only load those specific ids
+    if(job.idsToLoad) {
+      for(let i = 0; i < job.idsToLoad.length; i++) {
+        // This is an advertiserId-creativeId combination
+        let uniqueId = job.idsToLoad[i];
+        let idParts = uniqueId.split('-');
+        if(idParts.length === 2) {
+          let advertiserId = idParts[0];
+          let creativeId = idParts[1];
+          if(!advertisersMap[advertiserId]) {
+            advertisersMap[advertiserId] = [];
+          }
+          // Check if creativeId was provided and not empty
+          if(creativeId) {
+            advertisersMap[advertiserId].push(creativeId);
+          }
+        }
+      }
+      for(advId in advertisersMap) {
+        let advertiserCreativesIds = advertisersMap[advId];
+        if(advertiserCreativesIds.length > 0) {
+          // Only load the provided creative ids under the advertiser
+          advertiserCreatives = cmDAO.list('Creatives', 'creatives', {
+            'advertiserId': advId,
+            'ids': advertiserCreativesIds
+          });
+        } else {
+          // No creative ids were provided, load all the creatives
+          // under the advertiser
+          advertiserCreatives = cmDAO.list('Creatives', 'creatives', {
+            'advertiserId': advId
+          });
+        }
+      }
+    }
+    return advertiserCreatives;
+  }
+
+  /**
+   * Turns a Campaign Manager Advertiser Creative object from the API into
+   * a feed item to be written to the sheet
+   *
+   * params:
+   *  advertiserCreative: Advertiser Creative object returned from the Campaign Manager API
+   *
+   * returns: a feed item representing the advertiser creative to be written to the sheet
+   */
+  this.mapFeed = function(advertiserCreative) {
+    var feedItem = {};
+    feedItem[fields.advertiserId] = advertiserCreative.advertiserId;
+    feedItem[fields.creativeName] = advertiserCreative.name;
+    feedItem[fields.creativeId] = advertiserCreative.id;
+    return feedItem;
+  };
+
+  function validId(idString) {
+    idString = idString.toString();
+    return idString && idString != 'null' && idString.toLowerCase().indexOf('ext') != 0 && idString.length > 0
+  }
+}
+AdvertiserCreativeLoader.prototype = Object.create(BaseLoader.prototype);
+
+/**
  * Campaign Loader
  */
 var CampaignLoader = function(cmDAO) {
