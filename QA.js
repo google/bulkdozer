@@ -114,7 +114,7 @@ function qaByCreativeRotation(job) {
 
       feedItem['Site ID'] = placementGroup.siteId;
 
-      if(placementGroup.pricingSchedule && placementGroup.pricingSchedule.pricingPeriods.length > 0) {
+      if(placementGroup.pricingSchedule && placementGroup.pricingSchedule.pricingPeriods && placementGroup.pricingSchedule.pricingPeriods.length > 0) {
         feedItem['Rate'] = placementGroup.pricingSchedule.pricingPeriods[0].rateOrCostNanos / 1000000000;
         feedItem['Units'] = placementGroup.pricingSchedule.pricingPeriods[0].units;
       }
