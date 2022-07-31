@@ -1,6 +1,6 @@
 /***************************************************************************
 *
-*  Copyright 2020 Google Inc.
+*  Copyright 2022 Google Inc.
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -26,6 +26,15 @@
  */
 function getProfileId() {
   return getSheetDAO().getValue('Store', 'B2');
+}
+
+/* 
+ * Gets the Creative Name + Creative ID concatenation configuration - Feature #1
+ *
+ * returns: boolean flag to turn on/off this feature
+ */
+function getCreativeNameCreativeIdFeatureConfig() {
+  return getSheetDAO().getValue('Store', 'B8')
 }
 
 /*
@@ -576,6 +585,9 @@ var BaseLoader = function(cmDAO) {
   this.createPushJobs = function(job) {
     var feedProvider = new FeedProvider(this.tabName, this.keys).load();
     job.jobs = [];
+
+    // Add Creative Name + Creative ID configuration setting to control the feature in the frontend - Feature #1
+    job.configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
 
     if(!feedProvider.isEmpty() && job.preFetchConfigs && job.preFetchConfigs.length > 0) {
       for(var i = 0; i < job.preFetchConfigs.length; i++) {
@@ -1976,7 +1988,14 @@ var CreativeLoader = function(cmDAO) {
       feedItem[fields.campaignName] = campaign.name;
     }
 
-    feedItem[fields.creativeId] = creative.id;
+    // Show 'Creative Name + Creative ID' or 'Creative ID' depending on the configuration - Feature #1
+    let configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
+    if(configCreativeNameCreativeID) {
+      feedItem[fields.creativeId] = `${creative.name} ID=${creative.id}`; 
+    } else {
+      feedItem[fields.creativeId] = creative.id;
+    }
+
     feedItem[fields.creativeName] = creative.name;
     feedItem[fields.advertiserId] = creative.advertiserId;
     feedItem[fields.creativeActive] = creative.active;
@@ -2044,6 +2063,12 @@ var CreativeLoader = function(cmDAO) {
       cmDAO.associateCreativeToCampaign(campaign.id, job.cmObject.id);
 
       job.feedItem[fields.campaignName] = campaign.name;
+
+      // Show 'Creative Name + Creative ID' or 'Creative ID' depending on the configuration - Feature #1
+      let configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
+      if(configCreativeNameCreativeID) {
+        job.feedItem[fields.creativeId] = `${job.feedItem[fields.creativeName]} ID=${job.feedItem[fields.creativeId]}`;
+      }
     }
   }
 }
@@ -2149,6 +2174,12 @@ var AdLoader = function(cmDAO) {
 
         if(assignmentFeed[fields.creativeId]) {
 
+          // Preprocess the creative id to remove the Creative Name to avoid errors when pushing back to CM -  Feature #1
+          let configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
+          if(configCreativeNameCreativeID) {
+            preProcessCreativeIds(assignmentFeed, fields.creativeId);
+          }
+
           assignmentFeed[fields.adCreativeAssignmentStartDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentStartDate);
           assignmentFeed[fields.adCreativeAssignmentEndDate] = that.formatDateTime(assignmentFeed, fields.adCreativeAssignmentEndDate);
 
@@ -2184,6 +2215,16 @@ var AdLoader = function(cmDAO) {
       }
 
       ad.creativeRotation.creativeAssignments = creativeAssignments;
+    }
+  }
+
+  // Preprocess the creative id to remove the Creative Name to avoid errors when pushing back to CM -  Feature #1
+  function preProcessCreativeIds(assignmentFeed, creativeIdField) {
+    let id = assignmentFeed[creativeIdField];
+    let idsParts = id.split('ID=');
+    if(idsParts.length === 2) {
+      // Remove the Creative name from the ID for the API call
+      assignmentFeed[creativeIdField] = parseInt(idsParts[1]);
     }
   }
 
@@ -2374,7 +2415,14 @@ var AdLoader = function(cmDAO) {
         creativeAssignment[fields.adName] = ad.name;
         creativeAssignment[fields.adId] = ad.id;
         creativeAssignment[fields.creativeName] = creative.name;
-        creativeAssignment[fields.creativeId] = creative.id;
+        
+        // Show 'Creative Name + Creative ID' or 'Creative ID' depending on the configuration - Feature #1
+        let configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
+        if(configCreativeNameCreativeID) {
+          creativeAssignment[fields.creativeId] = `${creative.name} ID=${creative.id}`;
+        } else {
+          creativeAssignment[fields.creativeId] = creative.id;
+        }
 
         if(creativeAssignment[fields.landingPageId]) {
           var landingPage = cmDAO.get('AdvertiserLandingPages', creativeAssignment[fields.landingPageId]);
@@ -2482,7 +2530,14 @@ var AdCreativeLoader = function(cmDAO) {
       currentItem[fields.adId] = ad.id;
       currentItem[fields.adName] = ad.name;
 
-      currentItem[fields.creativeId] = currentCreative.id;
+      // Show 'Creative Name + Creative ID' or 'Creative ID' depending on the configuration - Feature #1
+      let configCreativeNameCreativeID = getCreativeNameCreativeIdFeatureConfig();
+      if(configCreativeNameCreativeID) {
+        currentItem[fields.creativeId] = `${currentCreative.name} ID=${currentCreative.id}`;
+      } else {
+        currentItem[fields.creativeId] = currentCreative.id;
+      }
+
       currentItem[fields.creativeName] = currentCreative.name;
 
       currentItem[fields.creativeRotationWeight] =

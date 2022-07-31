@@ -927,6 +927,13 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
 
       if(jobsMap[job['entity']].jobs.length > 0) {
         var j = preparePushJob(jobsMap, job['entity'], idMap);
+
+        // Preprocess the Creative ID to remove the Creative Name to avoid errors when pushing back to CM - Feature #1
+        let configCreativeNameCreativeID = (pushJobs && pushJobs.length > 0) ? pushJobs[0].configCreativeNameCreativeID : false;
+        if(configCreativeNameCreativeID) {
+          preProcessAllEntityIds(j);
+        }
+
         return new Runner().run('cmPush', j, writeLogs).then(function(executedJobs) {
           jobsMap[job['entity']].jobs = executedJobs;
           return postProcessEntityPush(executedJobs);
@@ -948,6 +955,34 @@ function orchestratePush(jobs, idMap, jobsMap, index) {
       reject(idMap);
     } else {
       resolve(idMap);
+    }
+  });
+}
+
+/**
+ * Preprocess the Creative ID to remove the Creative Name to avoid errors when
+ * pushing back to CM - Feature #1
+*/
+function preProcessAllEntityIds(entityItems) {
+  if(entityItems.length > 0 && entityItems[0].entity !== 'Creatives') {
+      // For now only process ids for the Creatives Entity
+      return
+  }
+  preProcessEntityIds(entityItems, 'Creative ID');
+}
+
+/**
+ * Preprocess the Creative ID to remove the Creative Name to avoid errors when
+ * pushing back to CM - Feature #1
+*/
+function preProcessEntityIds(entityItems, entityIdField) {
+  entityItems.forEach(e => {
+    let feedItem = e.feedItem;
+    let id = feedItem[entityIdField];
+    let idsParts = id.split('ID=');
+    if(idsParts.length === 2) {
+      // Remove the Creative name from the ID
+      feedItem[entityIdField] = parseInt(idsParts[1]);
     }
   });
 }
