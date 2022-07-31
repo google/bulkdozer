@@ -37,7 +37,7 @@ Use the link below to navigate to the tool. Refer to the
 "Instructions" tab of for details on how to deploy and use the solution.
 
 - [Bulkdozer
-  0.39.2](https://docs.google.com/spreadsheets/d/1mwBJ5f7kccB7IlpOT8xleY_aDdiNuKhrUVNWj5i9Jj4/edit?usp=sharing)
+  0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/copy)
 
 ### Apps Script Advanced Service Configuration
 Due to recent Apps Scripts changes, an extra configuration is required for Bulkdozer to work properly. Please follow the steps below:
@@ -52,7 +52,7 @@ Due to recent Apps Scripts changes, an extra configuration is required for Bulkd
 ### **Solution Setup, Basics & Legend**
 
 1. Make a Copy of the Bulkdozer Google Sheet [Bulkdozer
-  0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing)
+  0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/copy)
 
 2. Your permissions in Bulkdozer are tied to your CM360 Profile’s Permission for a given CM360 Account. In the Store tab, next to profileid (Row 2B), input your CM360 Profile ID for the appropriate CM360 Account that you will be trafficking in. Without this, Bulkdozer will not work.
 
@@ -193,7 +193,7 @@ Sign up for updates and announcements:
 
 ## Other Resources
 
-The files below are a simplified version of [Bulkdozer 0.39](https://docs.google.com/spreadsheets/d/1iSJfRxc-4sc1v52C2ufR8Ysz2O57Ygk_ErUGd-ZpAhU/edit?usp=sharing) and only include a specific Bulkdozer feature.
+The files below are a simplified version of [Bulkdozer 0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/copy) and only include a specific Bulkdozer feature.
 
 - [QA Tools 0.15](https://docs.google.com/spreadsheets/d/10sZGoK8Z9BMb_6QKeOzJ4D698mJ4mNbtDY8ASfoyh9I/edit?usp=sharing)
 - [Event Tag QA Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
