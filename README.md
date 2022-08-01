@@ -37,7 +37,7 @@ Use the link below to navigate to the tool. Refer to the
 "Instructions" tab of for details on how to deploy and use the solution.
 
 - [Bulkdozer
-  0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy)
+  0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy?resourcekey=0-5Rzw_463zI3EgIwG519gQA)
 
 ### Apps Script Advanced Service Configuration
 Due to recent Apps Scripts changes, an extra configuration is required for Bulkdozer to work properly. Please follow the steps below:
@@ -52,7 +52,7 @@ Due to recent Apps Scripts changes, an extra configuration is required for Bulkd
 ### **Solution Setup, Basics & Legend**
 
 1. Make a Copy of the Bulkdozer Google Sheet [Bulkdozer
-  0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy)
+  0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy?resourcekey=0-5Rzw_463zI3EgIwG519gQA)
 
 2. Your permissions in Bulkdozer are tied to your CM360 Profile’s Permission for a given CM360 Account. In the Store tab, next to profileid (Row 2B), input your CM360 Profile ID for the appropriate CM360 Account that you will be trafficking in. Without this, Bulkdozer will not work.
 
@@ -193,7 +193,7 @@ Sign up for updates and announcements:
 
 ## Other Resources
 
-The files below are a simplified version of [Bulkdozer 0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy) and only include a specific Bulkdozer feature.
+The files below are a simplified version of [Bulkdozer 0.39.3](https://docs.google.com/spreadsheets/d/1wgN5lettuA6tvKYyV6HyVxxtH3FS1cECx25liSbewkA/copy?resourcekey=0-5Rzw_463zI3EgIwG519gQA) and only include a specific Bulkdozer feature.
 
 - [QA Tools 0.15](https://docs.google.com/spreadsheets/d/10sZGoK8Z9BMb_6QKeOzJ4D698mJ4mNbtDY8ASfoyh9I/edit?usp=sharing)
 - [Event Tag QA Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
