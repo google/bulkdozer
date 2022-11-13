@@ -36,8 +36,7 @@ Bulkdozer is a Google Sheets-based tool leveraging Apps Script and the CM360 API
 Use the link below to navigate to the tool. Refer to the
 "Instructions" tab of for details on how to deploy and use the solution.
 
-- [Bulkdozer
-  0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing)
+- [Bulkdozer 0.4](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing)
 
 ### Apps Script Advanced Service Configuration
 Due to recent Apps Scripts changes, an extra configuration is required for Bulkdozer to work properly. Please follow the steps below:
@@ -45,14 +44,13 @@ Due to recent Apps Scripts changes, an extra configuration is required for Bulkd
 2. In the Script Editor, navigate to the 'Editor' tab in the outer left nav (icon looks like '< >' brackets)
 3. Under the 'Services' section of the inner left nav, click on the vertical three-dots next to the 'DoubleClickCampaigns' service and click 'Remove' and then click 'Remove service' on the confirmation pop-up.
 4. Click the '+' button next to Services in the inner left nav to re-add the service.
-5. In the list of services select 'Campaign Manager 360 API' and check that the version is the latest or 'v3.5' at this time and that the 'Identifier' is the same 'DoubleClickCampaigns'.
+5. In the list of services select 'Campaign Manager 360 API' and check that the version is 'v4' at this time and that the 'Identifier' is the same 'DoubleClickCampaigns'.
 
 ## Solution Manual
 
 ### **Solution Setup, Basics & Legend**
 
-1. Make a Copy of the Bulkdozer Google Sheet [Bulkdozer
-  0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing)
+1. Make a Copy of the Bulkdozer Google Sheet [Bulkdozer 0.4](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing)
 
 2. Your permissions in Bulkdozer are tied to your CM360 Profile’s Permission for a given CM360 Account. In the Store tab, next to profileid (Row 2B), input your CM360 Profile ID for the appropriate CM360 Account that you will be trafficking in. Without this, Bulkdozer will not work.
 
@@ -193,8 +191,9 @@ Sign up for updates and announcements:
 
 ## Other Resources
 
-The files below are a simplified version of [Bulkdozer 0.39.3](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing) and only include a specific Bulkdozer feature.
+The files below are a simplified version of [Bulkdozer 0.4](https://docs.google.com/spreadsheets/d/1jVXiLiAS_n9-7v7Ekw52UzNE2bEiCi7CCmjWxKB7kcw/edit?usp=sharing) and only include a specific Bulkdozer feature.
 
+**These modules are not actively maintained**
 - [QA Tools 0.15](https://docs.google.com/spreadsheets/d/10sZGoK8Z9BMb_6QKeOzJ4D698mJ4mNbtDY8ASfoyh9I/edit?usp=sharing)
 - [Event Tag QA Tool](https://docs.google.com/spreadsheets/d/1Pj4DqHibkTSoo6zQGDpksxpnxyhojNa3pBkMAvX0p6A/edit?usp=sharing&resourcekey=0-Vw7rukq3OH8cZLPR4IEk5g)
 - [Event Tag Editor 0.4](https://docs.google.com/spreadsheets/d/1_ox81ztsuxVaNsEjYvr783urGP41Hv1vnyP-hl0kUKo/edit?usp=sharing&resourcekey=0-CWepPTVXFFaBDg0CvD4rzg)

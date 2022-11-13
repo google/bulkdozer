@@ -38,7 +38,7 @@ function getCreativeNameCreativeIdFeatureConfig() {
 }
 
 /*
- * Gets the FilterArchived flag from the store tab
+ * Gets the ActiveOnly flag from the store tab
  *
  * returns: boolean representing the value of the active flag
  */
@@ -1302,12 +1302,13 @@ var PlacementGroupLoader = function(cmDAO) {
     }
 
     if(getUnarchivedOnlyFlag()) {
-      searchOptions['archived'] = false;
+      searchOptions['activeStatus'] = [fields.placementStatusUnknown, fields.placementStatusActive, fields.placementStatusInactive];
     }
+
     return result;
   }
 
-  /**
+  /**F
    * @see CampaignLoader.mapFeed
    */
   this.mapFeed = function(placementGroup) {
@@ -1406,7 +1407,7 @@ var PlacementLoader = function(cmDAO) {
     }
 
     if(getUnarchivedOnlyFlag()) {
-      searchOptions['archived'] = false;
+      searchOptions['activeStatus'] = [fields.placementStatusUnknown, fields.placementStatusActive, fields.placementStatusInactive];
     }
 
     return result;
@@ -1427,7 +1428,7 @@ var PlacementLoader = function(cmDAO) {
     var feedItem = {};
     feedItem[fields.placementId] = placement.id;
     feedItem[fields.placementName] = placement.name;
-    feedItem[fields.archived] = placement.archived;
+    feedItem[fields.activeStatus] = placement.activeStatus;
 
     if (placement.vpaidAdapterChoice == 'HTML5' &&
         !placement.videoActiveViewOptOut) {
@@ -1728,7 +1729,7 @@ var PlacementLoader = function(cmDAO) {
     // Handle base fields
     this.assign(placement, 'name', feedItem, fields.placementName, true);
 
-    placement['archived'] = this.isTrue(feedItem[fields.archived]);
+    placement['activeStatus'] = feedItem[fields.activeStatus];
     placement['adBlockingOptOut'] = this.isTrue(feedItem[fields.adBlocking]);
 
     this.assign(placement, 'siteId', feedItem, fields.siteId, true);
