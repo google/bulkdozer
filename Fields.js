@@ -22,27 +22,28 @@
 var fields = {
   // Common Fields
   'archived': 'Archived',
-  
+  'activeStatus': 'Active Status',
+
   // Advertiser
   'advertiserId': 'Advertiser ID',
   'advertiserName': 'Advertiser Name',
-  
+
   // Site
   'siteId': 'Site ID',
   'siteName': 'Site Name',
-  
+
   // Landing Page
   'landingPageId': 'Landing Page ID',
   'landingPageName': 'Landing Page Name',
   'landingPageUrl': 'Landing Page URL',
-  
+
   // Campaign
   'campaignId': 'Campaign ID',
   'campaignName': 'Campaign Name',
   'campaignStartDate': 'Campaign Start Date',
   'campaignEndDate': 'Campaign End Date',
   'billingInvoiceCode': 'Billing Invoice Code',
-  
+
   // Event Tag
   'eventTagId': 'Event Tag ID',
   'eventTagName': 'Event Tag Name',
@@ -51,7 +52,7 @@ var fields = {
   'eventTagType': 'Event Tag Type',
   'eventTagUrl': 'Event Tag URL',
   'enabled': 'Enabled',
-  
+
   // Placement Group
   'placementGroupId': 'Placement Group ID',
   'placementGroupName': 'Placement Group Name',
@@ -77,13 +78,18 @@ var fields = {
   'placementProgressOffsetPercentage': 'Progress Offset Percentage',
   'placementAdditionalKeyValues': 'Additional Key Values',
   'placementAssetSize': 'Asset Size',
+  'placementStatusUnknown': 'PLACEMENT_STATUS_UNKNOWN',
+  'placementStatusActive': 'PLACEMENT_STATUS_ACTIVE',
+  'placementStatusInactive': 'PLACEMENT_STATUS_INACTIVE',
+  'placementStatusArchived': 'PLACEMENT_STATUS_ARCHIVED',
+  'placementStatusPermanentlyArchived': 'PLACEMENT_STATUS_PERMANENTLY_ARCHIVED',
 
   // Placement Pricing Schedule
   'pricingPeriodStart': 'Pricing Period Start Date',
   'pricingPeriodEnd': 'Pricing Period End Date',
   'pricingPeriodRate': 'Pricing Period Rate',
   'pricingPeriodUnits': 'Pricing Period Units',
-  
+
   // Creative
   'creativeId': 'Creative ID',
   'creativeName': 'Creative Name',
