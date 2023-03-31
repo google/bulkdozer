@@ -75,16 +75,11 @@ var CampaignManagerDAO = function(profileId) {
       result = result.concat(response[listName]);
 
       if (response.nextPageToken) {
-        if(!options['ids']) {
-          // Possible bug. Keep sending options to filter the request such as campaignId, etc., in each call since the API 'loses' the params and starts retrieving
-          // elements in higher hierarchies, for example creatives at advertiser level instead of campaign level.
-          options['pageToken'] = response.nextPageToken;
-        } else {
-          // Don't do it when sending ids[] to filter the request since there is a 400 error about sending > 500 ids
-          options = {'pageToken': response.nextPageToken};
-        }
+        // Change due to bug: 276008048
+        // as long as we provide filters in later API list request along with the pageToken, It works fine in v4.
+        requestOptions = {'pageToken': response.nextPageToken, ...options};
         response = _retry(function() {
-          return DoubleClickCampaigns[entity].list(profileId, options);
+          return DoubleClickCampaigns[entity].list(profileId, requestOptions);
         }, DEFAULT_RETRIES, DEFAULT_SLEEP);
       } else {
         response = null;
