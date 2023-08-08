@@ -5,7 +5,7 @@
 The Google team is sunsetting Bulkdozer on August 15th, 2023. Bulkdozer was originally developed to help users automate bulk editing capabilities that can reduce trafficking time in Campaign Manager 360. 
 As Google products evolve, the gap that Bulkdozer covers has successfully shrunk and we encourage users to work with the new product features and offerings. 
 
-Campaign Manager 360 added a new feature to leverage spreadsheets to easily manage CM360 entities and assignments in bulk. The new Campaign Import/Export functionality will allow you to specify the format of the spreadsheet so that you can easily update CM360. This update adds column selection and saved templates, row filtering, custom timezone for dates and more. Please visit the [CM360 support page] (https://support.google.com/campaignmanager/answer/13391368) for more information.
+Campaign Manager 360 added a new feature to leverage spreadsheets to easily manage CM360 entities and assignments in bulk. The new Campaign Import/Export functionality will allow you to specify the format of the spreadsheet so that you can easily update CM360. This update adds column selection and saved templates, row filtering, custom timezone for dates and more. Please visit the [CM360 support page](https://support.google.com/campaignmanager/answer/13391368) for more information.
 
 We appreciate the contributions of the community that helped make Bulkdozer a success for many years. 
 
